@@ -7,7 +7,6 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 object Versions {
     const val Kotlin = "1.5.31"
     const val KotlinCoroutines = "1.5.2"
-    const val ProtobufPlugin = "0.8.16"
     const val SpringBoot = "2.5.6"
     const val SpringDependencyManagementPlugin = "1.0.11.RELEASE"
     const val KotlinLogging = "2.0.11"
@@ -26,7 +25,6 @@ object Plugins {
     // 3rd Party
     val Flyway = PluginSpec("org.flywaydb.flyway", Versions.Flyway)
     val Idea = PluginSpec("idea")
-    val Protobuf = PluginSpec("com.google.protobuf", Versions.ProtobufPlugin)
     val SpringBoot = PluginSpec("org.springframework.boot", Versions.SpringBoot)
     val SpringDependencyManagement = PluginSpec("io.spring.dependency-management", Versions.SpringDependencyManagementPlugin)
 }
@@ -76,6 +74,7 @@ object Dependencies {
     object Database {
         val Postgres = DependencySpec("org.postgresql:postgresql", Versions.Postgres)
         val Hikari = DependencySpec("com.zaxxer:HikariCP", Versions.Hikari)
+        val Flyway = DependencySpec("org.flywaydb:flyway-core:${Versions.Flyway}")
     }
 
     // Logging

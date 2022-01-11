@@ -26,6 +26,7 @@ dependencies {
         Dependencies.SpringBoot.StarterValidation,
         Dependencies.Database.Postgres,
         Dependencies.Database.Hikari,
+        Dependencies.Database.Flyway,
         Dependencies.KotlinLogging,
         Dependencies.Jackson.KotlinModule,
     ).forEach { it.implementation(this) }
