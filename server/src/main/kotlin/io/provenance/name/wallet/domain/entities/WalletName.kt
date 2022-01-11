@@ -1,6 +1,7 @@
 package io.provenance.name.wallet.domain.entities
 
 import io.provenance.name.wallet.domain.exceptions.ResourceNotFoundException
+import io.provenance.name.wallet.util.elvis
 import io.provenance.name.wallet.util.ifOrNull
 import io.provenance.name.wallet.util.offsetDatetime
 import org.jetbrains.exposed.dao.Entity
@@ -9,6 +10,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.OffsetDateTime
@@ -22,6 +24,8 @@ object WalletNameTable : IdTable<String>(name = "wallet_name") {
 
 class WalletNameRecord(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, WalletNameRecord>(WalletNameTable) {
+        private const val MAX_FIND_RESULTS: Int = 10
+
         fun findByWalletAddressOrNull(walletAddress: String): WalletNameRecord? = transaction {
             find { WalletNameTable.id eq walletAddress }.firstOrNull()
         }
@@ -55,8 +59,12 @@ class WalletNameRecord(id: EntityID<String>) : Entity<String>(id) {
             }
         }
 
-        // TODO: Definitely remove this garbage
-        fun findAll(): List<WalletNameRecord> = transaction { find { WalletNameTable.id.isNotNull() }.toList() }
+        fun findNamesContaining(containsCharacters: String, maxResults: Int? = null): List<WalletNameRecord> = transaction {
+            find { WalletNameTable.walletName.lowerCase().like("%${containsCharacters.lowercase()}%") }
+                // Don't return an enormous amount of results in case something dumb like 'a' gets passed in
+                .limit(maxResults.elvis(MAX_FIND_RESULTS).coerceAtMost(MAX_FIND_RESULTS).coerceAtLeast(1))
+                .toList()
+        }
 
         data class WalletNameInsertResponse(
             val existingRecord: WalletNameRecord?,
