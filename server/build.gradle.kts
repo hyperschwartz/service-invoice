@@ -11,6 +11,7 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation(project(":migrations"))
     listOf(
         Dependencies.Kotlin.AllOpen,
         Dependencies.Kotlin.Reflect,
@@ -20,13 +21,16 @@ dependencies {
         Dependencies.Kotlin.CoroutinesJdk8,
         Dependencies.SpringBoot.Starter,
         Dependencies.SpringBoot.StarterActuator,
-        Dependencies.SpringBoot.StarterWebFlux,
         Dependencies.SpringBoot.StarterJetty,
         Dependencies.SpringBoot.StarterDevTools,
         Dependencies.SpringBoot.StarterValidation,
+        Dependencies.SpringBoot.StarterWeb,
         Dependencies.Database.Postgres,
         Dependencies.Database.Hikari,
         Dependencies.Database.Flyway,
+        Dependencies.Database.Exposed,
+        Dependencies.Database.ExposedDao,
+        Dependencies.Database.ExposedJdbc,
         Dependencies.KotlinLogging,
         Dependencies.Jackson.KotlinModule,
     ).forEach { it.implementation(this) }

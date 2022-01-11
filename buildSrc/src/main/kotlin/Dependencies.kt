@@ -16,6 +16,7 @@ object Versions {
     const val Mockk = "1.12.0"
     const val SpringMockk = "3.0.1"
     const val Hikari = "4.0.3"
+    const val Exposed = "0.37.3"
 }
 
 object Plugins {
@@ -45,16 +46,11 @@ object Dependencies {
     // Spring
     object SpringBoot {
         val Starter = DependencySpec("org.springframework.boot:spring-boot-starter")
-        val StarterWebFlux = DependencySpec(
-            name = "org.springframework.boot:spring-boot-starter-webflux",
-            exclude = listOf("org.springframework.boot:spring-boot-starter-tomcat")
-        )
         val StarterJetty = DependencySpec("org.springframework.boot:spring-boot-starter-jetty")
         val StarterActuator = DependencySpec("org.springframework.boot:spring-boot-starter-actuator")
         val StarterDevTools = DependencySpec("org.springframework.boot:spring-boot-devtools")
-        val StarterSecurity = DependencySpec("org.springframework.boot:spring-boot-starter-security")
         val StarterValidation = DependencySpec("org.springframework.boot:spring-boot-starter-validation")
-
+        val StarterWeb = DependencySpec("org.springframework.boot:spring-boot-starter-web")
         val StarterTest =
             DependencySpec(
                 name = "org.springframework.boot:spring-boot-starter-test",
@@ -75,6 +71,9 @@ object Dependencies {
         val Postgres = DependencySpec("org.postgresql:postgresql", Versions.Postgres)
         val Hikari = DependencySpec("com.zaxxer:HikariCP", Versions.Hikari)
         val Flyway = DependencySpec("org.flywaydb:flyway-core:${Versions.Flyway}")
+        val Exposed = DependencySpec("org.jetbrains.exposed:exposed-core:${Versions.Exposed}")
+        val ExposedDao = DependencySpec("org.jetbrains.exposed:exposed-dao:${Versions.Exposed}")
+        val ExposedJdbc = DependencySpec("org.jetbrains.exposed:exposed-jdbc:${Versions.Exposed}")
     }
 
     // Logging

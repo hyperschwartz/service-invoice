@@ -17,7 +17,6 @@ import tech.figure.invoice.config.ServiceProperties
 class AppConfig {
     @Primary
     @Bean
-    // TODO: Protobuf module
     fun objectMapper(): ObjectMapper = ObjectMapper()
         .registerKotlinModule()
         .registerModule(JavaTimeModule())

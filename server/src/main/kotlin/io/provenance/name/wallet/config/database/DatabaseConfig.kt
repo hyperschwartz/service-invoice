@@ -5,11 +5,14 @@ import com.zaxxer.hikari.HikariDataSource
 import mu.KLogging
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.configuration.FluentConfiguration
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
+import java.sql.Connection
 import javax.sql.DataSource
 
 @Configuration
@@ -30,6 +33,10 @@ class DatabaseConfig {
         }
         HikariDataSource(hikariConfig)
     }
+
+    @Bean("databaseConnect")
+    fun databaseConnect(dataSource: DataSource): Database = Database.connect(dataSource)
+        .also { TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_READ_COMMITTED }
 
     @Bean
     fun flyway(dataSource: DataSource): Flyway = Flyway(FluentConfiguration().dataSource(dataSource))

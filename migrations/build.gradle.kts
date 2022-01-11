@@ -15,5 +15,5 @@ flyway {
     user = "postgres"
     password = "password1"
     schemas = arrayOf("walletname")
-    locations = arrayOf("filesystem:sql")
+    locations = arrayOf("filesystem:${projectDir}/src/main/resources/db/migration", "db/migration")
 }
