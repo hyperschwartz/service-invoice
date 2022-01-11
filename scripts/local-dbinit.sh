@@ -2,6 +2,6 @@
 
 pushd ../dev-compose
 
-./dbinit wallet-db
+./dbinit wallet-name-db
 
 popd
