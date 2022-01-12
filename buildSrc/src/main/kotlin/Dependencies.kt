@@ -19,6 +19,7 @@ object Versions {
     const val Protobuf = "3.6.1"
     // Both client and proto libraries have coupled versions. Found via inspecting dependencies brought in via client
     const val ProvenanceClient = "1.0.1"
+    const val ProvenanceHdWallet = "0.1.9"
     // This version is pinned because ProvenanceClient implementation does not bring it along, and matching it allows access to query protos
     const val ProvenanceProto = "1.7.0-0.0.2"
     const val SpringBoot = "2.5.6"
@@ -90,6 +91,7 @@ object Dependencies {
     // Provenance
     object Provenance {
         val ProvenanceGrpcClient = DependencySpec("io.provenance.client:pb-grpc-client-kotlin", Versions.ProvenanceClient)
+        val ProvenanceHdWallet = DependencySpec("io.provenance.hdwallet:hdwallet", Versions.ProvenanceHdWallet)
         val ProvenanceProto = DependencySpec("io.provenance.protobuf:pb-proto-java", Versions.ProvenanceProto)
     }
 

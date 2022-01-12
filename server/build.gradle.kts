@@ -32,6 +32,7 @@ dependencies {
         Dependencies.KotlinLogging,
         Dependencies.Protobuf,
         Dependencies.Provenance.ProvenanceGrpcClient,
+        Dependencies.Provenance.ProvenanceHdWallet,
         Dependencies.Provenance.ProvenanceProto,
         Dependencies.SpringBoot.Starter,
         Dependencies.SpringBoot.StarterJetty,
