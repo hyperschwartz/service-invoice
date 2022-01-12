@@ -5,19 +5,25 @@ import org.gradle.kotlin.dsl.exclude
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 object Versions {
+    const val Exposed = "0.37.3"
+    const val Flyway = "8.0.2"
+    // Communication with the PbClient requires GRPC to remain versioned in tandem with "ProvenanceClient." Be sure to update this alongside it
+    const val Grpc = "1.42.0"
+    const val Hikari = "4.0.3"
+    const val Jackson = "2.12.5"
     const val Kotlin = "1.5.31"
     const val KotlinCoroutines = "1.5.2"
+    const val KotlinLogging = "2.0.11"
+    const val Mockk = "1.12.0"
+    const val Postgres = "42.2.19"
+    const val Protobuf = "3.6.1"
+    // Both client and proto libraries have coupled versions. Found via inspecting dependencies brought in via client
+    const val ProvenanceClient = "1.0.1"
+    // This version is pinned because ProvenanceClient implementation does not bring it along, and matching it allows access to query protos
+    const val ProvenanceProto = "1.7.0-0.0.2"
     const val SpringBoot = "2.5.6"
     const val SpringDependencyManagementPlugin = "1.0.11.RELEASE"
-    const val KotlinLogging = "2.0.11"
-    const val Jackson = "2.12.5"
-    const val Postgres = "42.2.19"
-    const val Flyway = "8.0.2"
-    const val Mockk = "1.12.0"
     const val SpringMockk = "3.0.1"
-    const val Hikari = "4.0.3"
-    const val Exposed = "0.37.3"
-    const val ProvenanceClient = "1.0.1"
 }
 
 object Plugins {
@@ -48,8 +54,6 @@ object Dependencies {
     object SpringBoot {
         val Starter = DependencySpec("org.springframework.boot:spring-boot-starter")
         val StarterJetty = DependencySpec("org.springframework.boot:spring-boot-starter-jetty")
-        val StarterActuator = DependencySpec("org.springframework.boot:spring-boot-starter-actuator")
-        val StarterDevTools = DependencySpec("org.springframework.boot:spring-boot-devtools")
         val StarterValidation = DependencySpec("org.springframework.boot:spring-boot-starter-validation")
         val StarterWeb = DependencySpec("org.springframework.boot:spring-boot-starter-web")
         val StarterTest =
@@ -80,8 +84,20 @@ object Dependencies {
     // Logging
     val KotlinLogging = DependencySpec("io.github.microutils:kotlin-logging-jvm", Versions.KotlinLogging)
 
+    // Protobuf
+    val Protobuf = DependencySpec("com.google.protobuf:protobuf-java", Versions.Protobuf)
+
     // Provenance
-    val ProvenanceGrpcClient = DependencySpec("io.provenance.client:pb-grpc-client-kotlin", Versions.ProvenanceClient)
+    object Provenance {
+        val ProvenanceGrpcClient = DependencySpec("io.provenance.client:pb-grpc-client-kotlin", Versions.ProvenanceClient)
+        val ProvenanceProto = DependencySpec("io.provenance.protobuf:pb-proto-java", Versions.ProvenanceProto)
+    }
+
+    // GRPC (for Provenance - required dependencies because Prov stuff only brings in GRPC for runtime)
+    object Grpc {
+        val GrpcProtobuf = DependencySpec("io.grpc:grpc-protobuf", Versions.Grpc)
+        val GrpcStub = DependencySpec("io.grpc:grpc-stub", Versions.Grpc)
+    }
 
     // Testing
     val Mockk = DependencySpec("io.mockk:mockk", Versions.Mockk)
@@ -107,6 +123,7 @@ data class DependencySpec(
     val name: String,
     val version: String = "",
     val isChanging: Boolean = false,
+    val isTransitive: Boolean = true,
     val exclude: List<String> = emptyList()
 ) {
     fun plugin(scope: PluginDependenciesSpec) {
@@ -125,29 +142,15 @@ data class DependencySpec(
     }
 
     fun implementation(handler: DependencyHandlerScope) {
-        val spec = this
-        with(handler) {
-            "implementation".invoke(spec.toDependencyNotation()) {
-                isChanging = spec.isChanging
-                spec.exclude.forEach { excludeDependencyNotation ->
-                    val (group, module) = excludeDependencyNotation.split(":", limit = 2)
-                    this.exclude(group = group, module = module)
-                }
-            }
-        }
+        applyDependency("implementation", handler)
+    }
+
+    fun api(handler: DependencyHandlerScope) {
+        applyDependency("api", handler)
     }
 
     fun testImplementation(handler: DependencyHandlerScope) {
-        val spec = this
-        with(handler) {
-            "testImplementation".invoke(spec.toDependencyNotation()) {
-                isChanging = spec.isChanging
-                spec.exclude.forEach { excludeDependencyNotation ->
-                    val (group, module) = excludeDependencyNotation.split(":", limit = 2)
-                    this.exclude(group = group, module = module)
-                }
-            }
-        }
+        applyDependency("testImplementation", handler)
     }
 
     fun toDependencyNotation(): String =
@@ -155,4 +158,18 @@ data class DependencySpec(
             name,
             version.takeIf { it.isNotEmpty() }
         ).joinToString(":")
+
+    private fun applyDependency(type: String, handler: DependencyHandlerScope) {
+        val spec = this
+        with(handler) {
+            type.invoke(spec.toDependencyNotation()) {
+                isChanging = spec.isChanging
+                isTransitive = spec.isTransitive
+                spec.exclude.forEach { excludeDependencyNotation ->
+                    val (group, module) = excludeDependencyNotation.split(":", limit = 2)
+                    this.exclude(group = group, module = module)
+                }
+            }
+        }
+    }
 }

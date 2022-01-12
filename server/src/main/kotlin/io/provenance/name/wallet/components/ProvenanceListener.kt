@@ -23,7 +23,7 @@ class ProvenanceListener(
             logger.error("Attempted duplicate init for provenance listening!")
             return
         }
-        logger.info("Initializing provenance listener for address [${pbClient.channelUri.path}]")
+        logger.info("Initializing provenance listener for address [${pbClient.channelUri}] and chain [${pbClient.chainId}]")
         listenerActivated.set(true)
     }
 }

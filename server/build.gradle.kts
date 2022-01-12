@@ -11,39 +11,43 @@ dependencyManagement {
 }
 
 dependencies {
+    // Implementations
     implementation(project(":migrations"))
     listOf(
-        Dependencies.Kotlin.AllOpen,
-        Dependencies.Kotlin.Reflect,
-        Dependencies.Kotlin.StdLibJdk8,
-        Dependencies.Kotlin.CoroutinesCoreJvm,
-        Dependencies.Kotlin.CoroutinesReactor,
-        Dependencies.Kotlin.CoroutinesJdk8,
-        Dependencies.SpringBoot.Starter,
-        Dependencies.SpringBoot.StarterActuator,
-        Dependencies.SpringBoot.StarterJetty,
-        Dependencies.SpringBoot.StarterDevTools,
-        Dependencies.SpringBoot.StarterValidation,
-        Dependencies.SpringBoot.StarterWeb,
-        Dependencies.Jackson.KotlinModule,
-        Dependencies.Database.Postgres,
-        Dependencies.Database.Hikari,
-        Dependencies.Database.Flyway,
         Dependencies.Database.Exposed,
         Dependencies.Database.ExposedDao,
         Dependencies.Database.ExposedJdbc,
+        Dependencies.Database.Flyway,
+        Dependencies.Database.Hikari,
+        Dependencies.Database.Postgres,
+        Dependencies.Grpc.GrpcProtobuf,
+        Dependencies.Grpc.GrpcStub,
+        Dependencies.Jackson.KotlinModule,
+        Dependencies.Kotlin.AllOpen,
+        Dependencies.Kotlin.CoroutinesCoreJvm,
+        Dependencies.Kotlin.CoroutinesJdk8,
+        Dependencies.Kotlin.CoroutinesReactor,
+        Dependencies.Kotlin.Reflect,
+        Dependencies.Kotlin.StdLibJdk8,
         Dependencies.KotlinLogging,
-        Dependencies.ProvenanceGrpcClient,
+        Dependencies.Protobuf,
+        Dependencies.Provenance.ProvenanceGrpcClient,
+        Dependencies.Provenance.ProvenanceProto,
+        Dependencies.SpringBoot.Starter,
+        Dependencies.SpringBoot.StarterJetty,
+        Dependencies.SpringBoot.StarterValidation,
+        Dependencies.SpringBoot.StarterWeb,
     ).forEach { it.implementation(this) }
 
+    // Spring Config
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     listOf(
-        Dependencies.Mockk,
-        Dependencies.SpringMockk,
-        Dependencies.SpringBoot.StarterTest,
         Dependencies.Kotlin.CoroutinesTest,
         Dependencies.Kotlin.KotlinTest,
+        Dependencies.Mockk,
+        Dependencies.SpringBoot.StarterTest,
+        Dependencies.SpringMockk,
     ).forEach { it.testImplementation(this) }
 }
 
