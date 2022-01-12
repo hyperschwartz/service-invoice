@@ -2,7 +2,6 @@ package io.provenance.name.wallet.domain.entities
 
 import io.provenance.name.wallet.domain.exceptions.ResourceNotFoundException
 import io.provenance.name.wallet.util.elvis
-import io.provenance.name.wallet.util.ifOrNull
 import io.provenance.name.wallet.util.offsetDatetime
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
@@ -11,27 +10,20 @@ import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.lowerCase
-import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.OffsetDateTime
 
 object WalletNameTable : IdTable<String>(name = "wallet_name") {
-    override val id: Column<EntityID<String>> = varchar("wallet_address", 64).entityId()
+    val walletName = varchar("wallet_name", 64).uniqueIndex()
+    override val id: Column<EntityID<String>> = walletName.entityId()
     override val primaryKey = PrimaryKey(id)
-    val walletName = varchar("wallet_name", 64)
+    val walletAddress = text("wallet_address")
     val createdTime = offsetDatetime("created_time").default(OffsetDateTime.now())
 }
 
 class WalletNameRecord(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, WalletNameRecord>(WalletNameTable) {
         private const val MAX_FIND_RESULTS: Int = 10
-
-        fun findByWalletAddressOrNull(walletAddress: String): WalletNameRecord? = transaction {
-            find { WalletNameTable.id eq walletAddress }.firstOrNull()
-        }
-
-        fun findByWalletAddress(walletAddress: String): WalletNameRecord = findByWalletAddressOrNull(walletAddress)
-            ?: throw ResourceNotFoundException("Unable to find wallet name record by address [$walletAddress]")
 
         fun findByWalletNameOrNull(walletName: String): WalletNameRecord? = transaction {
             find { WalletNameTable.walletName eq walletName }.firstOrNull()
@@ -40,39 +32,39 @@ class WalletNameRecord(id: EntityID<String>) : Entity<String>(id) {
         fun findByWalletName(walletName: String): WalletNameRecord = findByWalletNameOrNull(walletName)
             ?: throw ResourceNotFoundException("Unable to find wallet name record by name [$walletName]")
 
-        fun findByWalletAddressOrNameOrNull(walletAddress: String, walletName: String): WalletNameRecord? = transaction {
-            find { (WalletNameTable.id eq walletAddress) or (WalletNameTable.walletName eq walletName) }
-                .firstOrNull()
+        fun findByWalletAddressOrNull(walletAddress: String): WalletNameRecord? = transaction {
+            find { WalletNameTable.walletAddress eq walletAddress }.firstOrNull()
         }
+
+        fun findByWalletAddress(walletAddress: String): WalletNameRecord = findByWalletAddressOrNull(walletAddress)
+            ?: throw ResourceNotFoundException("Unable to find wallet name record by address [$walletAddress]")
 
         fun insertIfNotPresent(walletAddress: String, walletName: String): WalletNameInsertResponse = transaction {
-            findByWalletAddressOrNameOrNull(walletAddress, walletName).let { existingRecordOrNull ->
-                WalletNameInsertResponse(
-                    existingRecord = existingRecordOrNull,
-                    newRecordId = ifOrNull (existingRecordOrNull == null) {
-                        WalletNameTable.insertAndGetId {
-                            it[this.id] = walletAddress
-                            it[this.walletName] = walletName
-                        }.value
-                    }
+            findByWalletNameOrNull(walletName)
+                ?.let(WalletNameInsertResponse::Existing)
+                ?: WalletNameInsertResponse.New(
+                    WalletNameTable.insertAndGetId {
+                        it[this.walletName] = walletName
+                        it[this.walletAddress] = walletAddress
+                    }.value
                 )
-            }
         }
 
+        @Suppress("UNCHECKED_CAST")
         fun findNamesContaining(containsCharacters: String, maxResults: Int? = null): List<WalletNameRecord> = transaction {
-            find { WalletNameTable.walletName.lowerCase().like("%${containsCharacters.lowercase()}%") }
+            find { WalletNameTable.walletName.lowerCase() like "%${containsCharacters.lowercase()}%" }
                 // Don't return an enormous amount of results in case something dumb like 'a' gets passed in
                 .limit(maxResults.elvis(MAX_FIND_RESULTS).coerceAtMost(MAX_FIND_RESULTS).coerceAtLeast(1))
                 .toList()
         }
 
-        data class WalletNameInsertResponse(
-            val existingRecord: WalletNameRecord?,
-            val newRecordId: String?,
-        )
+        sealed interface WalletNameInsertResponse {
+            class New(val recordId: String) : WalletNameInsertResponse
+            class Existing(val record: WalletNameRecord) : WalletNameInsertResponse
+        }
     }
 
-    val walletAddress by WalletNameTable.id
     val walletName by WalletNameTable.walletName
+    val walletAddress by WalletNameTable.walletAddress
     val createdTime by WalletNameTable.createdTime
 }

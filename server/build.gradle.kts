@@ -25,6 +25,7 @@ dependencies {
         Dependencies.SpringBoot.StarterDevTools,
         Dependencies.SpringBoot.StarterValidation,
         Dependencies.SpringBoot.StarterWeb,
+        Dependencies.Jackson.KotlinModule,
         Dependencies.Database.Postgres,
         Dependencies.Database.Hikari,
         Dependencies.Database.Flyway,
@@ -32,7 +33,8 @@ dependencies {
         Dependencies.Database.ExposedDao,
         Dependencies.Database.ExposedJdbc,
         Dependencies.KotlinLogging,
-        Dependencies.Jackson.KotlinModule,
+        // TODO: Cannot resolve this
+        // Dependencies.ProvenanceGrpcClient,
     ).forEach { it.implementation(this) }
 
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

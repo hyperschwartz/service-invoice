@@ -17,6 +17,7 @@ object Versions {
     const val SpringMockk = "3.0.1"
     const val Hikari = "4.0.3"
     const val Exposed = "0.37.3"
+    const val ProvenanceClient = "1.0.1"
 }
 
 object Plugins {
@@ -40,7 +41,7 @@ object Dependencies {
         val CoroutinesReactor = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-reactor", Versions.KotlinCoroutines)
         val CoroutinesJdk8 = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", Versions.KotlinCoroutines)
         val CoroutinesTest = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-test", Versions.KotlinCoroutines)
-        val KotlinTest = DependencySpec("org.jetbrains.kotlin:kotlin-test:${Versions.Kotlin}")
+        val KotlinTest = DependencySpec("org.jetbrains.kotlin:kotlin-test", Versions.Kotlin)
     }
 
     // Spring
@@ -71,13 +72,16 @@ object Dependencies {
         val Postgres = DependencySpec("org.postgresql:postgresql", Versions.Postgres)
         val Hikari = DependencySpec("com.zaxxer:HikariCP", Versions.Hikari)
         val Flyway = DependencySpec("org.flywaydb:flyway-core:${Versions.Flyway}")
-        val Exposed = DependencySpec("org.jetbrains.exposed:exposed-core:${Versions.Exposed}")
-        val ExposedDao = DependencySpec("org.jetbrains.exposed:exposed-dao:${Versions.Exposed}")
-        val ExposedJdbc = DependencySpec("org.jetbrains.exposed:exposed-jdbc:${Versions.Exposed}")
+        val Exposed = DependencySpec("org.jetbrains.exposed:exposed-core", Versions.Exposed)
+        val ExposedDao = DependencySpec("org.jetbrains.exposed:exposed-dao", Versions.Exposed)
+        val ExposedJdbc = DependencySpec("org.jetbrains.exposed:exposed-jdbc", Versions.Exposed)
     }
 
     // Logging
     val KotlinLogging = DependencySpec("io.github.microutils:kotlin-logging-jvm", Versions.KotlinLogging)
+
+    // Provenance
+    val ProvenanceGrpcClient = DependencySpec("io.provenance-client:pb-grpc-client-kotlin", Versions.ProvenanceClient)
 
     // Testing
     val Mockk = DependencySpec("io.mockk:mockk", Versions.Mockk)
