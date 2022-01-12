@@ -81,7 +81,7 @@ object Dependencies {
     val KotlinLogging = DependencySpec("io.github.microutils:kotlin-logging-jvm", Versions.KotlinLogging)
 
     // Provenance
-    val ProvenanceGrpcClient = DependencySpec("io.provenance-client:pb-grpc-client-kotlin", Versions.ProvenanceClient)
+    val ProvenanceGrpcClient = DependencySpec("io.provenance.client:pb-grpc-client-kotlin", Versions.ProvenanceClient)
 
     // Testing
     val Mockk = DependencySpec("io.mockk:mockk", Versions.Mockk)

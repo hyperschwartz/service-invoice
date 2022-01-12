@@ -10,6 +10,8 @@ allprojects {
 
     repositories {
         mavenCentral()
+        // For KEthereum library
+        maven(url = "https://jitpack.io")
     }
 }
 

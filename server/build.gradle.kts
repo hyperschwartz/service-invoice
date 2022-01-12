@@ -33,8 +33,7 @@ dependencies {
         Dependencies.Database.ExposedDao,
         Dependencies.Database.ExposedJdbc,
         Dependencies.KotlinLogging,
-        // TODO: Cannot resolve this
-        // Dependencies.ProvenanceGrpcClient,
+        Dependencies.ProvenanceGrpcClient,
     ).forEach { it.implementation(this) }
 
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
