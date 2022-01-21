@@ -7,6 +7,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 object Versions {
     const val Exposed = "0.37.3"
     const val Flyway = "8.0.2"
+    const val FrontendHelperPlugin = "6.0.0"
     // Communication with the PbClient requires GRPC to remain versioned in tandem with "ProvenanceClient." Be sure to update this alongside it
     const val Grpc = "1.42.0"
     const val Hikari = "4.0.3"
@@ -15,6 +16,7 @@ object Versions {
     const val KotlinCoroutines = "1.5.2"
     const val KotlinLogging = "2.0.11"
     const val Mockk = "1.12.0"
+    const val Node = "14.17.3"
     const val Postgres = "42.2.19"
     const val Protobuf = "3.6.1"
     const val ProtobufPlugin = "0.8.16"
@@ -34,6 +36,7 @@ object Plugins {
 
     // 3rd Party
     val Flyway = PluginSpec("org.flywaydb.flyway", Versions.Flyway)
+    val FrontendHelper = PluginSpec("org.siouan.frontend-jdk11", Versions.FrontendHelperPlugin)
     val Idea = PluginSpec("idea")
     val Protobuf = PluginSpec("com.google.protobuf", Versions.ProtobufPlugin)
     val SpringBoot = PluginSpec("org.springframework.boot", Versions.SpringBoot)

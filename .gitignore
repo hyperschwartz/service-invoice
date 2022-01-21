@@ -34,3 +34,8 @@ build/
 out/
 /.settings/
 /.datastore
+
+# Node Temp Stuff
+*/node_modules/
+*/node/
+package-lock.json

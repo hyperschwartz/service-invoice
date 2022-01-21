@@ -1,0 +1,14 @@
+{
+  "name": "protoc-ts-gen-helper",
+  "version": "1.0.0",
+  "description": "Assists in compiling proto files to typescript, because there is no artifactory plugin for gradle to do it",
+  "license": "ISC",
+  "scripts": {
+    "build-proto": "bash ./scripts/gen-typescript.sh"
+  },
+  "devDependencies": {
+    "google-protobuf": "^3.6.1",
+    "protoc-gen-ts": "0.7.0",
+    "typescript": "4.2.4"
+  }
+}
