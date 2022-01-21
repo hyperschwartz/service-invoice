@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package invoice;
+
+option java_package = "io.provenance.invoice";
+
+message UUID {
+  string value = 1;
+}
+
+message Decimal {
+  string value = 1;
+}
+
+message Date {
+  string value = 1;
+}

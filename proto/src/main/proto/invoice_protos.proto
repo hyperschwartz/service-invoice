@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package invoice;
+
+option java_package = "io.provenance.invoice";
+
+import "util_protos.proto";
+
+message Invoice {
+  UUID invoice_uuid = 1; // Unique identifier for the invoice
+  string from_address = 2; // The provenance address of the entity sending the invoice
+  string to_address = 3; // The provenance address of the entity receiving the invoice
+  Date invoice_created_date = 4; // Date on which the invoice was generated
+  Date invoice_due_date = 5; // Date on which payment should be expected to be made
+  string description = 6; // Free-form description indicating the reason for the invoice
+  string payment_denom = 7; // Coin denomination expected for payment
+  repeated LineItem line_items = 8; // The breakdown of each charge
+}
+
+message LineItem {
+  UUID line_uuid = 1; // Unique identifier for each line item
+  string name = 2; // The short-form name for the individual charge
+  string description = 3; // The human-readable description of the charge
+  int32 quantity = 4; // The amount of charges for this particular item
+  Decimal price = 5; // The price per charge (total amount = quantity * price)
+}

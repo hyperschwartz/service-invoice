@@ -13,6 +13,7 @@ dependencyManagement {
 dependencies {
     // Implementations
     implementation(project(":migrations"))
+    implementation(project(":proto"))
     listOf(
         Dependencies.Database.Exposed,
         Dependencies.Database.ExposedDao,
@@ -30,7 +31,8 @@ dependencies {
         Dependencies.Kotlin.Reflect,
         Dependencies.Kotlin.StdLibJdk8,
         Dependencies.KotlinLogging,
-        Dependencies.Protobuf,
+        Dependencies.Protobuf.Java,
+        Dependencies.Protobuf.JavaUtil,
         Dependencies.Provenance.ProvenanceGrpcClient,
         Dependencies.Provenance.ProvenanceHdWallet,
         Dependencies.Provenance.ProvenanceProto,

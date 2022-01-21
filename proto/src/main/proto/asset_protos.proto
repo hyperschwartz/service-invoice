@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package invoice;
+
+option java_package = "io.provenance.invoice";
+
+import "util_protos.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/descriptor.proto";
+
+option java_outer_classname = "AssetProtos";
+
+extend google.protobuf.EnumValueOptions {
+  string provenance_name = 51554;
+  string asset_kv_name = 51555;
+}
+
+// Overarching asset payload
+message Asset {
+  UUID id = 1; // Unique identifier for the asset
+  string type = 2; // The specific type of asset, corresponds to one of AssetType enum string names
+  string description = 3; // A description that should maintain constant across generated assets, containing various values that define it in a unique way
+  map<string, google.protobuf.Any> kv = 4; // Sub-fields of the packed asset
+}
+
+enum AssetType {
+  UNKNOWN_ASSET_TYPE = 0;
+  LOAN = 1 [(provenance_name) = "PROVENANCE_LOAN", (asset_kv_name) = "loan"];
+  TITLE = 2 [(provenance_name) = "PROVENANCE_TITLE", (asset_kv_name) = "title"];
+  FUND = 3 [(provenance_name) = "PROVENANCE_FUND", (asset_kv_name) = "fund"];
+  NFT = 4 [(provenance_name) = "PROVENANCE_NFT", (asset_kv_name) = "nft"];
+}

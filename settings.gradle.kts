@@ -1,3 +1,3 @@
 rootProject.name = "server-wallet-name"
 
-include("migrations", "server")
+include("migrations", "proto", "server")

@@ -17,6 +17,7 @@ object Versions {
     const val Mockk = "1.12.0"
     const val Postgres = "42.2.19"
     const val Protobuf = "3.6.1"
+    const val ProtobufPlugin = "0.8.16"
     // Both client and proto libraries have coupled versions. Found via inspecting dependencies brought in via client
     const val ProvenanceClient = "1.0.1"
     const val ProvenanceHdWallet = "0.1.9"
@@ -34,6 +35,7 @@ object Plugins {
     // 3rd Party
     val Flyway = PluginSpec("org.flywaydb.flyway", Versions.Flyway)
     val Idea = PluginSpec("idea")
+    val Protobuf = PluginSpec("com.google.protobuf", Versions.ProtobufPlugin)
     val SpringBoot = PluginSpec("org.springframework.boot", Versions.SpringBoot)
     val SpringDependencyManagement = PluginSpec("io.spring.dependency-management", Versions.SpringDependencyManagementPlugin)
 }
@@ -86,7 +88,10 @@ object Dependencies {
     val KotlinLogging = DependencySpec("io.github.microutils:kotlin-logging-jvm", Versions.KotlinLogging)
 
     // Protobuf
-    val Protobuf = DependencySpec("com.google.protobuf:protobuf-java", Versions.Protobuf)
+    object Protobuf {
+        val Java = DependencySpec("com.google.protobuf:protobuf-java", Versions.Protobuf)
+        val JavaUtil = DependencySpec("com.google.protobuf:protobuf-java-util", Versions.Protobuf)
+    }
 
     // Provenance
     object Provenance {
