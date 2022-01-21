@@ -1,7 +1,6 @@
 package io.provenance.invoice.domain.entities
 
 import io.provenance.invoice.InvoiceProtos.Invoice
-import io.provenance.invoice.domain.exceptions.ResourceNotFoundException
 import io.provenance.invoice.util.enums.InvoiceProcessingStatus
 import io.provenance.invoice.util.exposed.offsetDatetime
 import io.provenance.invoice.util.exposed.proto
@@ -14,7 +13,6 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 object InvoiceTable : UUIDTable(columnName = "invoice_uuid", name = "invoice") {
-    val invoiceUuid = uuid("invoice_uuid")
     val data = proto(name = "data", Invoice.getDefaultInstance())
     val status = text(name = "status")
     val createdTime = offsetDatetime(name = "created_time")
@@ -24,7 +22,7 @@ object InvoiceTable : UUIDTable(columnName = "invoice_uuid", name = "invoice") {
 open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<InvoiceRecord>(invoiceTable) {
     private fun insert(
         invoice: Invoice,
-        processingStatus: InvoiceProcessingStatus = InvoiceProcessingStatus.PENDING_STAMP,
+        processingStatus: InvoiceProcessingStatus,
         created: OffsetDateTime = OffsetDateTime.now()
     ): InvoiceRecord = new(invoice.invoiceUuid.toUuid()) {
         data = invoice
@@ -34,33 +32,24 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
 
     fun upsert(
         invoice: Invoice,
-        processingStatus: InvoiceProcessingStatus = InvoiceProcessingStatus.PENDING_STAMP,
+        processingStatus: InvoiceProcessingStatus,
         upsertTime: OffsetDateTime = OffsetDateTime.now(),
-    ): InvoiceRecord = findRecordByUuidOrNull(invoice.invoiceUuid.toUuid())?.apply {
+    ): InvoiceRecord = findById(invoice.invoiceUuid.toUuid())?.apply {
         data = invoice
         status = processingStatus.name
         updatedTime = upsertTime
     } ?: insert(invoice = invoice, processingStatus = processingStatus, created = upsertTime)
-
-    fun findRecordByUuidOrNull(uuid: UUID): InvoiceRecord? = find { InvoiceTable.invoiceUuid eq uuid }.firstOrNull()
-
-    fun findRecordByUuid(uuid: UUID): InvoiceRecord = findRecordByUuidOrNull(uuid)
-        ?: throw ResourceNotFoundException("Failed to find invoice by uuid [$uuid]")
-
-    fun findInvoiceByUuidOrNull(uuid: UUID): Invoice? = findRecordByUuidOrNull(uuid)?.invoice
-
-    fun findInvoiceByUuid(uuid: UUID): Invoice = findRecordByUuid(uuid).invoice
 }
 
 class InvoiceRecord(uuid: EntityID<UUID>) : UUIDEntity(uuid) {
     companion object : InvoiceEntityClass(InvoiceTable)
 
-    val invoiceUuid: UUID by InvoiceTable.invoiceUuid
     var data: Invoice by InvoiceTable.data
     var status: String by InvoiceTable.status
     var createdTime: OffsetDateTime by InvoiceTable.createdTime
     var updatedTime: OffsetDateTime? by InvoiceTable.updatedTime
 
-    val processingStatus: InvoiceProcessingStatus by lazy { InvoiceProcessingStatus.valueOf(status) }
     val invoice: Invoice by lazy { data }
+    val invoiceUuid: UUID by lazy { invoice.invoiceUuid.toUuid() }
+    val processingStatus: InvoiceProcessingStatus by lazy { InvoiceProcessingStatus.valueOf(status) }
 }
