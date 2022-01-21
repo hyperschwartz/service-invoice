@@ -1,7 +1,7 @@
 version: '3.5'
 services:
   postgres:
-    build: docker/postgres
+    build: postgres
     container_name: postgres-local
     networks:
       provenance-development:

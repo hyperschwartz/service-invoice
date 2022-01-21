@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 argc="$#"
 if [ "$argc" -eq 0 ]; then
