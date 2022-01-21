@@ -1,7 +1,6 @@
 package io.provenance.invoice.components
 
 import io.provenance.client.PbClient
-import io.provenance.invoice.services.NameService
 import mu.KLogging
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
@@ -10,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 @Component
 class ProvenanceListener(
-    private val nameService: NameService,
     private val pbClient: PbClient,
 ) {
     private companion object : KLogging() {

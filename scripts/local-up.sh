@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
 
-pushd ../dev-compose
-
+./dbinit provenance-invoice
 docker-compose up -d postgres
-
-popd

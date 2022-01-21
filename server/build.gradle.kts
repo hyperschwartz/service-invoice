@@ -24,6 +24,7 @@ dependencies {
         Dependencies.Grpc.GrpcProtobuf,
         Dependencies.Grpc.GrpcStub,
         Dependencies.Jackson.KotlinModule,
+        Dependencies.Jackson.ProtobufModule,
         Dependencies.Kotlin.AllOpen,
         Dependencies.Kotlin.CoroutinesCoreJvm,
         Dependencies.Kotlin.CoroutinesJdk8,
