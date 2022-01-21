@@ -1,4 +1,24 @@
 # Service Invoice
-Watches for invoices and does invoice things whoaooaooa
+Handles Provenance Invoice generation
 
-TODO: Make this a real readme before making this non-private
+## Running
+
+### Local
+The application depends on a dedicated database.  To spin up the local database, just run from the root directory:
+```shell
+./localnet-up.sh
+```
+
+To check that the database is available, just run the following command and look for a container called 
+local-development-postgres.
+```shell
+docker ps
+```
+
+After verifying your database is up, just boot the app.  It runs on port 13459.
+```shell
+./gradlew bootRun
+```
+
+### Deployment
+Maybe someday....

@@ -5,7 +5,7 @@ plugins {
 }
 
 allprojects {
-    group = "io.provenance.tech.wallet.name"
+    group = "io.provenance.invoice"
     version = artifactVersion()
 
     repositories {
@@ -25,7 +25,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
         )
         jvmTarget = "11"
-        allWarningsAsErrors = true
     }
 }
 
@@ -50,7 +49,6 @@ subprojects {
                 "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
             )
             jvmTarget = "11"
-            allWarningsAsErrors = true
         }
     }
 

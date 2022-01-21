@@ -12,6 +12,7 @@ object Versions {
     const val Grpc = "1.42.0"
     const val Hikari = "4.0.3"
     const val Jackson = "2.12.5"
+    const val JacksonProtobuf = "0.9.12"
     const val Kotlin = "1.5.31"
     const val KotlinCoroutines = "1.5.2"
     const val KotlinLogging = "2.0.11"
@@ -75,6 +76,7 @@ object Dependencies {
     // Jackson
     object Jackson {
         val KotlinModule = DependencySpec("com.fasterxml.jackson.module:jackson-module-kotlin", Versions.Jackson)
+        val ProtobufModule = DependencySpec("com.hubspot.jackson:jackson-datatype-protobuf", Versions.JacksonProtobuf)
     }
 
     // Database

@@ -1,11 +1,17 @@
 version: '3.5'
 services:
   postgres:
-    build: ./docker/postgres/
+    build: postgres
     container_name: postgres-local
+    networks:
+      provenance-development:
+        aliases:
+          - postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password1
+    env_file:
+      - ./common.env
     ports:
       - "5432:5432"
     volumes:
@@ -19,5 +25,23 @@ services:
       postgres
       -c 'integrationtest.safe=1'
 
+  dbinit:
+    build: initdb
+    container_name: dbinit
+    networks:
+      - provenance-development
+    depends_on:
+      - postgres
+    env_file:
+      - env/config/dbinit
+    volumes:
+      - ./initdb/init:/postgres
+
+
 volumes:
   postgres:
+
+networks:
+  provenance-development:
+    name: provenance-development
+
