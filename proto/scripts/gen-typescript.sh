@@ -14,7 +14,7 @@ for dir in $proto_dirs; do
   -I "./src/main/proto" \
   --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts \
   --ts_out="build/generated/source/proto/main/ts" \
-  --js_out=import_style=commonjs,binary:./build/generated/source/proto/main/js \
+  --js_out=import_style=commonjs,binary:./build/generated/source/proto/main/ts \
   $(find "${dir}" -maxdepth 1 -name '*.proto')
 done
 
