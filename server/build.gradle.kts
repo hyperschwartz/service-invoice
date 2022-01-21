@@ -21,6 +21,7 @@ dependencies {
         Dependencies.Database.Flyway,
         Dependencies.Database.Hikari,
         Dependencies.Database.Postgres,
+        Dependencies.Feign.FeignJackson,
         Dependencies.Grpc.GrpcProtobuf,
         Dependencies.Grpc.GrpcStub,
         Dependencies.Jackson.KotlinModule,

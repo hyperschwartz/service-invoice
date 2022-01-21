@@ -6,6 +6,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 
 object Versions {
     const val Exposed = "0.37.3"
+    const val Feign = "10.1.0"
     const val Flyway = "8.0.2"
     const val FrontendHelperPlugin = "6.0.0"
     // Communication with the PbClient requires GRPC to remain versioned in tandem with "ProvenanceClient." Be sure to update this alongside it
@@ -110,6 +111,11 @@ object Dependencies {
     object Grpc {
         val GrpcProtobuf = DependencySpec("io.grpc:grpc-protobuf", Versions.Grpc)
         val GrpcStub = DependencySpec("io.grpc:grpc-stub", Versions.Grpc)
+    }
+
+    // Feign
+    object Feign {
+        val FeignJackson = DependencySpec("io.github.openfeign:feign-jackson", Versions.Feign)
     }
 
     // Testing

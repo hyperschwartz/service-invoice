@@ -2,6 +2,7 @@ package io.provenance.invoice.services
 
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.LineItem
+import io.provenance.invoice.clients.OnboardingApiClient
 import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.util.enums.ExpectedDenom
 import io.provenance.invoice.util.enums.InvoiceProcessingStatus
@@ -9,21 +10,48 @@ import io.provenance.invoice.util.extension.check
 import io.provenance.invoice.util.extension.checkNotNull
 import io.provenance.invoice.util.extension.isAfterInclusive
 import io.provenance.invoice.util.extension.isBeforeInclusive
+import io.provenance.invoice.util.extension.toAsset
 import io.provenance.invoice.util.extension.toBigDecimalOrNull
 import io.provenance.invoice.util.extension.toLocalDateOrNull
 import io.provenance.invoice.util.extension.toUuidOrNull
 import io.provenance.invoice.util.extension.totalAmount
+import mu.KLogging
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
 
 @Service
-class InvoiceService(private val invoiceRepository: InvoiceRepository) {
+class InvoiceService(
+    private val invoiceRepository: InvoiceRepository,
+    private val onboardingApi: OnboardingApiClient,
+) {
+    private companion object : KLogging()
+
     // TODO: Return onboarding API results for the invoice instead of just validate / insert / return
-    fun onboardInvoice(invoice: Invoice): Invoice {
+    fun onboardInvoice(
+        invoice: Invoice,
+        address: String,
+        publicKey: String,
+    ): Invoice {
         // Ensure first that the invoice is of a valid format
+        logger.info("Validating received invoice with uuid [${invoice.invoiceUuid.value}]")
         validateInvoice(invoice)
+        logger.info("Generating onboarding asset from invoice with uuid [${invoice.invoiceUuid.value}]")
+        val asset = invoice.toAsset()
+        logger.info("Generating onboarding messages for invoice with uuid [${invoice.invoiceUuid.value}]")
+        // TODO: This needs an api key
+        // TODO: Need to store the results from this in the db alongside the invoice to enable retries
+        try {
+            onboardingApi.generateOnboarding(
+                address = address,
+                publicKey = publicKey,
+                asset = asset,
+            ).also { results -> logger.info("Successful onboarding api call: $results") }
+        } catch (e: Exception) {
+            logger.error("Failed to generate onboarding payload with onboarding api", e)
+        }
+        logger.info("Storing successful payload in the database for invoice [${invoice.invoiceUuid.value}]")
         // Acknowledge receipt of invoice by upserting it to the database
         return invoiceRepository.upsert(invoice = invoice, status = InvoiceProcessingStatus.PENDING_STAMP)
     }
