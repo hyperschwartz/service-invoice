@@ -38,6 +38,7 @@ dependencies {
         Dependencies.Provenance.ProvenanceHdWallet,
         Dependencies.Provenance.ProvenanceProto,
         Dependencies.SpringBoot.Starter,
+        Dependencies.SpringBoot.StarterAOP,
         Dependencies.SpringBoot.StarterJetty,
         Dependencies.SpringBoot.StarterValidation,
         Dependencies.SpringBoot.StarterWeb,

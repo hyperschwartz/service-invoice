@@ -10,6 +10,7 @@ import io.provenance.invoice.AssetProtos.AssetOrBuilder
 import io.provenance.invoice.AssetProtos.AssetType
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.InvoiceOrBuilder
+import io.provenance.invoice.InvoiceProtos.LineItemOrBuilder
 import io.provenance.invoice.util.randomProtoUuid
 
 fun AssetType.provenanceName(): String = this.getExtensionValue(AssetProtos.provenanceName)
@@ -43,3 +44,22 @@ private fun <T: MessageOrBuilder> T.toAsset(
 
 private fun <T: ProtocolMessageEnum, U: Any> T.getExtensionValue(extension: GeneratedExtension<EnumValueOptions, U>): U =
     this.valueDescriptor.options.getExtension(extension)
+
+fun InvoiceOrBuilder.loggingString(): String = """
+    invoice_uuid: ${invoiceUuid.value}
+    from_address: $fromAddress
+    to_address: $toAddress
+    invoice_created_date: ${invoiceCreatedDate.value}
+    invoice_due_date: ${invoiceDueDate.value}
+    description: $description
+    payment_denom: $paymentDenom
+    line_items: ${lineItemsList.joinToString(separator = System.lineSeparator()) { it.loggingString() } }
+""".trimIndent()
+
+fun LineItemOrBuilder.loggingString(): String = """
+    line_uuid: ${lineUuid.value}
+    name: $name
+    description: $description
+    quantity: $quantity
+    price: ${price.value}
+""".trimIndent()
