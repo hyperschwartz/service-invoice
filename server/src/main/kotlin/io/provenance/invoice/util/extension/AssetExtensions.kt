@@ -12,6 +12,7 @@ import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.InvoiceOrBuilder
 import io.provenance.invoice.InvoiceProtos.LineItemOrBuilder
 import io.provenance.invoice.util.randomProtoUuid
+import java.math.BigDecimal
 
 fun AssetType.provenanceName(): String = this.getExtensionValue(AssetProtos.provenanceName)
 
@@ -44,6 +45,8 @@ private fun <T: MessageOrBuilder> T.toAsset(
 
 private fun <T: ProtocolMessageEnum, U: Any> T.getExtensionValue(extension: GeneratedExtension<EnumValueOptions, U>): U =
     this.valueDescriptor.options.getExtension(extension)
+
+fun InvoiceOrBuilder.totalAmount(): BigDecimal = lineItemsList.sumOf { it.quantity.toBigDecimal() * it.price.toBigDecimalOrZero() }
 
 fun InvoiceOrBuilder.loggingString(): String = """
     invoice_uuid: ${invoiceUuid.value}

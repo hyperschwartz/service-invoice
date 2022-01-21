@@ -8,7 +8,7 @@ fun <T: Any?, U: Any?, R> T.flowTo(that: U, transform: (T, U) -> R): R = transfo
 
 fun <T> tryOrNull(fn: () -> T): T? = try { fn() } catch (e: Exception) { null }
 
-fun <T: Any> T?.checkNotNull(lazyMessage: () -> String = { "Expected value to be non-null" }): T {
+fun <T> T?.checkNotNull(lazyMessage: () -> String = { "Expected value to be non-null" }): T {
     check(this != null, lazyMessage)
     return this
 }
@@ -19,4 +19,3 @@ fun <T> T.check(predicate: (T) -> Boolean, lazyMessage: () -> String = { "Check 
 }
 
 fun <T: Any, U: Any> T.ifOrNull(predicate: (T) -> Boolean, fn: (T) -> U): U? = if (predicate(this)) fn(this) else null
-

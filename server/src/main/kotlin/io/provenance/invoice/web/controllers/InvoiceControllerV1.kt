@@ -3,6 +3,7 @@ package io.provenance.invoice.web.controllers
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.config.web.Routes
 import io.provenance.invoice.repository.InvoiceRepository
+import io.provenance.invoice.services.InvoiceService
 import io.provenance.invoice.util.enums.InvoiceProcessingStatus
 import mu.KLogging
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,11 +17,17 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("${Routes.V1}/invoices", produces = ["application/json"])
-class InvoiceControllerV1(private val invoiceRepository: InvoiceRepository) {
+class InvoiceControllerV1(
+    private val invoiceRepository: InvoiceRepository,
+    private val invoiceService: InvoiceService,
+) {
     private companion object : KLogging()
 
     @GetMapping("/{uuid}")
     fun getByUuid(@PathVariable uuid: UUID): Invoice? = invoiceRepository.findByUuidOrNull(uuid)
+
+    @PostMapping("/onboard")
+    fun onboardInvoice(@RequestBody invoice: Invoice): Invoice = invoiceService.onboardInvoice(invoice)
 
     // TODO: Remove this route when the proper onboarding code is written
     @PostMapping("/testonly")

@@ -15,6 +15,7 @@ import io.provenance.invoice.UtilProtos
 import io.provenance.invoice.UtilProtos.Date
 import io.provenance.invoice.UtilProtos.DateOrBuilder
 import io.provenance.invoice.UtilProtos.Decimal
+import io.provenance.invoice.UtilProtos.DecimalOrBuilder
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -55,8 +56,9 @@ fun TimestampOrBuilder.toOffsetDateTimeOrNull(): OffsetDateTime? = tryOrNull { t
 fun BigDecimal.toProtoDecimal(): Decimal = Decimal.newBuilder().setValue(this.toPlainString()).build()
 fun String.toProtoDecimal(): Decimal = this.toBigDecimal().toProtoDecimal()
 fun String.toProtoDecimalOrNull(): Decimal? = this.toBigDecimalOrNull()?.toProtoDecimal()
-fun UtilProtos.DecimalOrBuilder.toBigDecimal(): BigDecimal = BigDecimal(this.value)
-fun UtilProtos.DecimalOrBuilder.toBigDecimalOrNull(): BigDecimal? = tryOrNull { toBigDecimal() }
+fun DecimalOrBuilder.toBigDecimal(): BigDecimal = BigDecimal(this.value)
+fun DecimalOrBuilder.toBigDecimalOrNull(): BigDecimal? = tryOrNull { toBigDecimal() }
+fun DecimalOrBuilder.toBigDecimalOrZero(): BigDecimal = toBigDecimalOrNull() ?: BigDecimal.ZERO
 
 //
 // Any
