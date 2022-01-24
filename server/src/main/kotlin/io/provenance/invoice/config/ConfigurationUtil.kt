@@ -10,17 +10,30 @@ import com.hubspot.jackson.datatype.protobuf.ProtobufModule
 import feign.Feign
 import feign.Logger
 import feign.Request
+import feign.RequestInterceptor
+import feign.RequestTemplate
 import feign.Response
 import feign.RetryableException
 import feign.Retryer
 import feign.codec.ErrorDecoder
 import feign.jackson.JacksonDecoder
 import feign.jackson.JacksonEncoder
+import io.provenance.invoice.config.web.AppHeaders
 import mu.KLogging
 
 // Shared functionality to allow configurations to be generated in non-server environemnts (testing)
 object ConfigurationUtil {
-    fun getDefaultFeignBuilder(mapper: ObjectMapper): Feign.Builder = Feign.builder()
+    /**
+     * Generates the default Feign configurations for a builder to take a properly-declared interface and convert it to
+     * a Feign REST client.
+     *
+     * @param mapper The object mapper to use for encoding/decoding JSON as per the requests' expected results.
+     * @param apiKey OPTIONAL.  If provided, an apikey header will be added to all requests.
+     */
+    fun getDefaultFeignBuilder(
+        mapper: ObjectMapper,
+        apiKey: String? = null,
+    ): Feign.Builder = Feign.builder()
             // 1 sec connection timeout, 1 min read timeout
         .options(Request.Options(1000, 60000))
         .logLevel(Logger.Level.BASIC)
@@ -31,6 +44,9 @@ object ConfigurationUtil {
         .encoder(JacksonEncoder(mapper))
         .decoder(JacksonDecoder(mapper))
         .errorDecoder(FeignErrorDecoder())
+        .also { builder ->
+            apiKey?.also { a -> builder.requestInterceptor(ApiKeyRequestInterceptor(a)) }
+        }
 
     fun getObjectMapper(): ObjectMapper = ObjectMapper()
         .registerKotlinModule()
@@ -62,4 +78,13 @@ class FeignErrorDecoder : ErrorDecoder.Default() {
             504 -> RetryableException("504: Gateway Timeout", response.request().httpMethod(), null)
             else -> super.decode(methodKey, response)
         }
+}
+
+/**
+ * Automatically applies the api key to each request made with the feign REST client.
+ */
+class ApiKeyRequestInterceptor(private val apiKey: String): RequestInterceptor {
+    override fun apply(template: RequestTemplate?) {
+        template?.header(AppHeaders.API_KEY, apiKey)
+    }
 }

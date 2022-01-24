@@ -9,4 +9,5 @@ import org.springframework.validation.annotation.Validated
 @Validated
 data class FigureTechProperties(
     val onboardingApiPrefix: String,
+    val onboardingApiKey: String,
 )

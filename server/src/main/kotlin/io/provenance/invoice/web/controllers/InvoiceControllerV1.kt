@@ -34,14 +34,5 @@ class InvoiceControllerV1(
         @RequestHeader(AppHeaders.WALLET_ADDRESS) address: String,
         @RequestHeader(AppHeaders.WALLET_PUBLIC_KEY) publicKey: String,
     ): Invoice = invoiceService.onboardInvoice(invoice = invoice, address = address, publicKey = publicKey)
-
-    // TODO: Remove this route when the proper onboarding code is written
-    @PostMapping("/testonly")
-    fun upsertInvoice(
-        @RequestBody invoice: Invoice,
-        @RequestParam status: InvoiceProcessingStatus?,
-    ): Invoice {
-        return invoiceRepository.upsert(invoice, status ?: InvoiceProcessingStatus.PENDING_STAMP)
-    }
 }
 

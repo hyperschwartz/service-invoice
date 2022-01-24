@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="service-invoice" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <module name="service-invoice.server.main" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="tech.figure.invoice.ApplicationKt" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="io.provenance.invoice.ApplicationKt" />
     <option name="ACTIVE_PROFILES" value="development" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <option name="SHORTEN_COMMAND_LINE" value="NONE" />

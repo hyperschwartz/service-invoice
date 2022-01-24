@@ -65,3 +65,7 @@ tasks.withType<Test> {
         events("passed", "skipped", "failed")
     }
 }
+
+tasks.bootRun {
+    args("--spring.profiles.active=development")
+}

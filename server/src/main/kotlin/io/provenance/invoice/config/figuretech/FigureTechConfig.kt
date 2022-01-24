@@ -14,6 +14,6 @@ class FigureTechConfig {
     fun onboardingApiClient(
         mapper: ObjectMapper,
         props: FigureTechProperties
-    ): OnboardingApiClient = ConfigurationUtil.getDefaultFeignBuilder(mapper)
+    ): OnboardingApiClient = ConfigurationUtil.getDefaultFeignBuilder(mapper = mapper, apiKey = props.onboardingApiKey)
         .target(OnboardingApiClient::class.java, props.onboardingApiPrefix)
 }
