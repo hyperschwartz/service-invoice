@@ -8,9 +8,9 @@ import io.provenance.invoice.AssetProtos
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.AssetProtos.AssetOrBuilder
 import io.provenance.invoice.AssetProtos.AssetType
+import io.provenance.invoice.AssetProtosBuilders
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.InvoiceOrBuilder
-import io.provenance.invoice.InvoiceProtos.LineItemOrBuilder
 import io.provenance.invoice.util.randomProtoUuid
 import java.math.BigDecimal
 
@@ -19,8 +19,8 @@ fun AssetType.provenanceName(): String = this.getExtensionValue(AssetProtos.prov
 fun AssetType.assetKvName(): String = this.getExtensionValue(AssetProtos.assetKvName)
 
 fun InvoiceOrBuilder.toAsset(): Asset = this.toAsset(
-    type = AssetType.NFT,
-    description = "${AssetType.NFT.provenanceName()} [${this.invoiceUuid.value}]",
+    assetType = AssetType.NFT,
+    assetDescription = "${AssetType.NFT.provenanceName()} [${this.invoiceUuid.value}]",
 )
 
 fun AssetOrBuilder.unpackInvoice(): Invoice = this
@@ -30,39 +30,22 @@ fun AssetOrBuilder.unpackInvoice(): Invoice = this
     .unpack(Invoice::class.java)
 
 private fun <T: MessageOrBuilder> T.toAsset(
-    type: AssetType,
-    description: String = type.provenanceName(),
-): Asset = Asset.newBuilder().also { builder ->
-    builder.id = randomProtoUuid()
-    builder.type = type.name
-    builder.description = description
-    // TODO: Might need to swap to the commented-out strategy based on how development with onboarding api goes
-    builder.putKv(type.assetKvName(), this.toProtoAny())
-//    this.allFields.forEach { (descriptor, value) ->
-//        builder.putKv(descriptor.name, value.genericToProtoAny())
-//    }
-}.build()
+    assetType: AssetType,
+    assetDescription: String = assetType.provenanceName(),
+): Asset = this.let { message ->
+    AssetProtosBuilders.Asset {
+        id = randomProtoUuid()
+        type = assetType.name
+        description = assetDescription
+        putKv(assetType.assetKvName(), message.toProtoAny())
+        // TODO: Might need to swap to the commented-out strategy based on how development with onboarding api goes
+//        message.allFields.forEach { (descriptor, value) ->
+//            putKv(descriptor.name, value.genericToProtoAny())
+//        }
+    }
+}
 
 private fun <T: ProtocolMessageEnum, U: Any> T.getExtensionValue(extension: GeneratedExtension<EnumValueOptions, U>): U =
     this.valueDescriptor.options.getExtension(extension)
 
 fun InvoiceOrBuilder.totalAmount(): BigDecimal = lineItemsList.sumOf { it.quantity.toBigDecimal() * it.price.toBigDecimalOrZero() }
-
-fun InvoiceOrBuilder.loggingString(): String = """
-    invoice_uuid: ${invoiceUuid.value}
-    from_address: $fromAddress
-    to_address: $toAddress
-    invoice_created_date: ${invoiceCreatedDate.value}
-    invoice_due_date: ${invoiceDueDate.value}
-    description: $description
-    payment_denom: $paymentDenom
-    line_items: ${lineItemsList.joinToString(separator = System.lineSeparator()) { it.loggingString() } }
-""".trimIndent()
-
-fun LineItemOrBuilder.loggingString(): String = """
-    line_uuid: ${lineUuid.value}
-    name: $name
-    description: $description
-    quantity: $quantity
-    price: ${price.value}
-""".trimIndent()

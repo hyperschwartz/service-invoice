@@ -1,4 +1,5 @@
 import com.google.protobuf.gradle.generateProtoTasks
+import com.google.protobuf.gradle.id
 import com.google.protobuf.gradle.ofSourceSet
 import com.google.protobuf.gradle.plugins
 import com.google.protobuf.gradle.protobuf
@@ -14,6 +15,7 @@ plugins {
 
 dependencies {
     listOf(
+        Dependencies.JavaX.Annotation,
         Dependencies.Protobuf.Java,
         Dependencies.Protobuf.JavaUtil,
     ).forEach { it.implementation(this) }
@@ -44,11 +46,24 @@ protobuf {
     protoc {
         artifact = "${Plugins.Protobuf.id}:protoc:${Versions.Protobuf}"
     }
+    plugins {
+        id("kroto") {
+            artifact = Dependencies.Protobuf.Kroto.toDependencyNotation()
+        }
+    }
     generateProtoTasks {
+        val krotoConfig = file("kroto-config.yaml")
+
         all().forEach { task ->
             // Ensure typescript files are generated alongside the java files
             task.dependsOn("generateTypescriptProto")
-            task.plugins { ofSourceSet("main") }
+            task.plugins {
+                ofSourceSet("main")
+                id("kroto") {
+                    outputSubDir = "java"
+                    option("ConfigPath=$krotoConfig")
+                }
+            }
         }
     }
 }

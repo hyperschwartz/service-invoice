@@ -1,3 +1,3 @@
-rootProject.name = "server-wallet-name"
+rootProject.name = "service-invoice"
 
 include("migrations", "proto", "server")

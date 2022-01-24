@@ -2,8 +2,8 @@ package io.provenance.invoice.util.extension
 
 import helper.MockProtoUtil
 import helper.assertSucceeds
-import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.AssetProtos.AssetType
+import io.provenance.invoice.AssetProtosBuilders
 import io.provenance.invoice.util.randomProtoUuid
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -13,11 +13,11 @@ class AssetExtensionsTest {
     @Test
     fun testUnpackInvoiceFromAsset() {
         val invoice = MockProtoUtil.getMockInvoice()
-        val asset = Asset.newBuilder().also { assetBuilder ->
-            assetBuilder.id = randomProtoUuid()
-            assetBuilder.type = AssetType.NFT.name
-            assetBuilder.description = "Doesn't matter"
-            assetBuilder.putKv(AssetType.NFT.assetKvName(), invoice.toProtoAny())
+        val asset = AssetProtosBuilders.Asset {
+            id = randomProtoUuid()
+            type = AssetType.NFT.name
+            description = "Doesn't matter"
+            putKv(AssetType.NFT.assetKvName(), invoice.toProtoAny())
         }
         val unpackedInvoice = assertSucceeds("Expected the invoice kv to successfully unpack to an Invoice proto") {
             asset.unpackInvoice()

@@ -14,9 +14,11 @@ object Versions {
     const val Hikari = "4.0.3"
     const val Jackson = "2.12.5"
     const val JacksonProtobuf = "0.9.12"
+    const val JavaX = "1.3.2"
     const val Kotlin = "1.5.31"
     const val KotlinCoroutines = "1.5.2"
     const val KotlinLogging = "2.0.11"
+    const val Kroto = "0.6.1"
     const val Mockk = "1.12.0"
     const val Node = "14.17.3"
     const val Postgres = "42.2.19"
@@ -98,6 +100,7 @@ object Dependencies {
     object Protobuf {
         val Java = DependencySpec("com.google.protobuf:protobuf-java", Versions.Protobuf)
         val JavaUtil = DependencySpec("com.google.protobuf:protobuf-java-util", Versions.Protobuf)
+        val Kroto = DependencySpec("com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus", Versions.Kroto)
     }
 
     // Provenance
@@ -116,6 +119,11 @@ object Dependencies {
     // Feign
     object Feign {
         val FeignJackson = DependencySpec("io.github.openfeign:feign-jackson", Versions.Feign)
+    }
+
+    // JavaX
+    object JavaX {
+        val Annotation = DependencySpec("javax.annotation:javax.annotation-api", Versions.JavaX)
     }
 
     // Testing

@@ -1,8 +1,6 @@
 package io.provenance.invoice.util.extension
 
-import io.provenance.invoice.UtilProtos
-import io.provenance.invoice.UtilProtos.Date
-import io.provenance.invoice.UtilProtos.Decimal
+import io.provenance.invoice.UtilProtosBuilders
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -38,7 +36,7 @@ class ProtoExtensionsTest {
             actual = javaUuid.toString().toProtoUuid().toUuid(),
             message = "Expected the java uuid in stringified form to survive a full trip to proto uuid",
         )
-        val protoUuid = UtilProtos.UUID.newBuilder().setValue(UUID.randomUUID().toString()).build()
+        val protoUuid = UtilProtosBuilders.UUID { value = UUID.randomUUID().toString() }
         assertEquals(
             expected = protoUuid.value,
             actual = protoUuid.toUuid().toString(),
@@ -49,7 +47,7 @@ class ProtoExtensionsTest {
             actual = protoUuid.toUuid().toProtoUuid(),
             message = "Expected the proto uuid to equal itself after a round trip from proto to proto"
         )
-        val invalidProtoUuid = UtilProtos.UUID.newBuilder().setValue("no u").build()
+        val invalidProtoUuid = UtilProtosBuilders.UUID { value = "no u" }
         assertNull(
             actual = invalidProtoUuid.toUuidOrNull(),
             message = "Expected an invalid proto uuid to equate to null after an attempted conversion",
@@ -69,7 +67,7 @@ class ProtoExtensionsTest {
             actual = javaDate.toProtoDate().toLocalDate(),
             message = "Expected the java date to equal itself when going round trip from java to java",
         )
-        val protoDate = Date.newBuilder().setValue(LocalDate.now().toString()).build()
+        val protoDate = UtilProtosBuilders.Date { value = LocalDate.now().toString() }
         assertEquals(
             expected = protoDate.value,
             actual = protoDate.toLocalDate().toString(),
@@ -80,7 +78,7 @@ class ProtoExtensionsTest {
             actual = protoDate.toLocalDate().toProtoDate(),
             message = "Expected the proto date to equal itself after a round trip from proto to proto"
         )
-        val invalidProtoDate = Date.newBuilder().setValue("2022-01-012").build()
+        val invalidProtoDate = UtilProtosBuilders.Date { value = "2022-01-012" }
         assertNull(
             actual = invalidProtoDate.toLocalDateOrNull(),
             message = "Expected an invalid proto date to equate to null after an attempted conversion",
@@ -130,7 +128,7 @@ class ProtoExtensionsTest {
                 message = "Expected the big decimal to survive a round trip",
             )
         }
-        sourceValues.map { Decimal.newBuilder().setValue(it).build() }.forEach { protoDecimal ->
+        sourceValues.map { UtilProtosBuilders.Decimal { value = it } }.forEach { protoDecimal ->
             assertEquals(
                 expected = protoDecimal.value,
                 actual = protoDecimal.toBigDecimal().toPlainString(),
@@ -142,7 +140,7 @@ class ProtoExtensionsTest {
                 message = "Expected the proto decimal to equal itself after a round trip from proto to proto"
             )
         }
-        val invalidProtoDecimal = Decimal.newBuilder().setValue("THIS AIN'T DECIMALS").build()
+        val invalidProtoDecimal = UtilProtosBuilders.Decimal { value = "This ain't no decimal" }
         assertNull(
             actual = invalidProtoDecimal.toBigDecimalOrNull(),
             message = "Expected an invalid proto decimal to equate to null after an attempted conversion",
