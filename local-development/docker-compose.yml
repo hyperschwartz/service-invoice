@@ -4,7 +4,7 @@ services:
     build: postgres
     container_name: postgres-local
     networks:
-      provenance-development:
+      figure-tech-development:
         aliases:
           - postgres
     environment:
@@ -29,7 +29,7 @@ services:
     build: initdb
     container_name: dbinit
     networks:
-      - provenance-development
+      - figure-tech-development
     depends_on:
       - postgres
     env_file:
@@ -42,6 +42,6 @@ volumes:
   postgres:
 
 networks:
-  provenance-development:
-    name: provenance-development
+  figure-tech-development:
+    name: figure-tech-development
 

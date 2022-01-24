@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-./db-init.sh provenance-invoice
+./db-init.sh invoice-db
 docker-compose up -d postgres

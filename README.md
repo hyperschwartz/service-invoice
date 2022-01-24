@@ -1,5 +1,5 @@
 # Service Invoice
-Handles Provenance Invoice generation
+Handles Invoice generation
 
 ## Running
 
@@ -9,7 +9,7 @@ The application depends on a dedicated database.  To spin up the local database,
 ./localnet-up.sh
 ```
 
-To check that the database is available, just run the following command and look for a container called 
+To check that the database is available, just run the following command and look for a container called
 local-development-postgres.
 ```shell
 docker ps

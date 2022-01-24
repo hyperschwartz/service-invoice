@@ -1,13 +1,13 @@
 package helper
 
-import io.provenance.invoice.InvoiceProtos.Invoice
-import io.provenance.invoice.InvoiceProtos.LineItem
-import io.provenance.invoice.InvoiceProtosBuilders
-import io.provenance.invoice.UtilProtos
-import io.provenance.invoice.util.enums.ExpectedDenom
-import io.provenance.invoice.util.extension.toProtoDate
-import io.provenance.invoice.util.extension.toProtoDecimal
-import io.provenance.invoice.util.randomProtoUuid
+import tech.figure.invoice.InvoiceProtos.Invoice
+import tech.figure.invoice.InvoiceProtos.LineItem
+import tech.figure.invoice.UtilProtos
+import tech.figure.invoice.InvoiceProtosBuilders
+import tech.figure.invoice.util.enums.ExpectedDenom
+import tech.figure.invoice.util.extension.toProtoDate
+import tech.figure.invoice.util.extension.toProtoDecimal
+import tech.figure.invoice.util.randomProtoUuid
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertTrue
