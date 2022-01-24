@@ -1,6 +1,6 @@
 package io.provenance.invoice.clients
 
-import com.fasterxml.jackson.databind.node.ObjectNode
+import cosmos.tx.v1beta1.TxOuterClass
 import feign.Headers
 import feign.Param
 import feign.RequestLine
@@ -18,10 +18,13 @@ interface OnboardingApiClient {
         @Param("address") address: String,
         @Param("publicKey") publicKey: String,
         asset: Asset,
-    ): TxBody
+    ): OnboardingResponse
 }
 
-data class TxBody(
-    val json: ObjectNode,
+data class OnboardingResponse(
+    // service-asset-onboarding returns an encoded Cosmos TxBody proto labeled as "json," serialized as an ObjectNode.
+    // The underlying value is a TxBody, so we can just deserialize straight to the source here
+    val json: TxOuterClass.TxBody,
+    // Each individual message in the transaction is returned as a Base64 encoded string
     val base64: List<String>,
 )

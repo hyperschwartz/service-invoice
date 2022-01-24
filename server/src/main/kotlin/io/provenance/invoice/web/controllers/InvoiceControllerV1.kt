@@ -3,8 +3,10 @@ package io.provenance.invoice.web.controllers
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.config.web.AppHeaders
 import io.provenance.invoice.config.web.AppRoutes
+import io.provenance.invoice.domain.wallet.WalletDetails
 import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.services.InvoiceService
+import io.provenance.invoice.services.OnboardInvoiceRequest
 import io.provenance.invoice.util.enums.InvoiceProcessingStatus
 import mu.KLogging
 import org.springframework.web.bind.annotation.GetMapping
@@ -33,6 +35,9 @@ class InvoiceControllerV1(
         @RequestBody invoice: Invoice,
         @RequestHeader(AppHeaders.WALLET_ADDRESS) address: String,
         @RequestHeader(AppHeaders.WALLET_PUBLIC_KEY) publicKey: String,
-    ): Invoice = invoiceService.onboardInvoice(invoice = invoice, address = address, publicKey = publicKey)
+    ): Invoice = invoiceService.onboardInvoice(request = OnboardInvoiceRequest(
+        invoice = invoice,
+        walletDetails = WalletDetails(address = address, publicKey = publicKey),
+    ))
 }
 
