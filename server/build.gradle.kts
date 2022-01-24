@@ -8,6 +8,23 @@ plugins {
 
 java.sourceCompatibility = JavaVersion.VERSION_11
 
+configurations.all {
+    // CVE-2021-44228 mitigation requires log4j to be greater than 2.15.0 (NOTE gradle 8 will remove VersionNumber but 7.3.x should have a builtin fix for this issue)
+    exclude(group = "log4j") // ancient versions of log4j use this group
+    val requiredVersion = net.swiftzer.semver.SemVer.parse("2.15.0")
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.apache.logging.log4j") {
+            requested.version
+                ?.let(net.swiftzer.semver.SemVer::parse)
+                ?.takeIf { it < requiredVersion }
+                ?.also {
+                    useVersion("2.15.0")
+                    because("CVE-2021-44228")
+                }
+        }
+    }
+}
+
 dependencyManagement {
     applyMavenExclusions(false)
 }

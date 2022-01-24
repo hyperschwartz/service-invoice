@@ -17,7 +17,7 @@ object Versions {
     const val JavaX = "1.3.2"
     const val Kotlin = "1.5.31"
     const val KotlinCoroutines = "1.5.2"
-    const val KotlinLogging = "2.0.11"
+    const val KotlinLogging = "2.1.21"
     const val Kroto = "0.6.1"
     const val Mockk = "1.12.0"
     const val Node = "14.17.3"
@@ -29,6 +29,7 @@ object Versions {
     const val ProvenanceHdWallet = "0.1.9"
     // This version is pinned because ProvenanceClient implementation does not bring it along, and matching it allows access to query protos
     const val ProvenanceProto = "1.7.0-0.0.2"
+    const val SemVer = "1.1.2"
     const val SpringBoot = "2.5.6"
     const val SpringDependencyManagementPlugin = "1.0.11.RELEASE"
     const val SpringMockk = "3.0.1"
@@ -116,6 +117,9 @@ object Dependencies {
     object JavaX {
         val Annotation = DependencySpec("javax.annotation:javax.annotation-api", Versions.JavaX)
     }
+
+    // SemVer
+    val SemVer = DependencySpec("net.swiftzer.semver:semver", Versions.SemVer)
 }
 
 object TestDependencies {

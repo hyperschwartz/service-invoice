@@ -32,7 +32,6 @@ class TestContainersInit : ApplicationContextInitializer<ConfigurableApplication
             "spring.datasource.url=",
             "spring.datasource.username=postgres",
             "spring.datasource.password=password1",
-            "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver",
             "database.name=provenance-invoice",
             "database.username=postgres",
             "database.password=password1",
