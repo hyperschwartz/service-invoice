@@ -39,5 +39,11 @@ class InvoiceControllerV1(
         invoice = invoice,
         walletDetails = WalletDetails(address = address, publicKey = publicKey),
     ))
+
+    @GetMapping("/address/from/{fromAddress}")
+    fun getByFromAddress(@PathVariable fromAddress: String): List<Invoice> = invoiceRepository.findAllByFromAddress(fromAddress)
+
+    @GetMapping("/address/to/{toAddress}")
+    fun getByToAddress(@PathVariable toAddress: String): List<Invoice> = invoiceRepository.findAllByToAddress(toAddress)
 }
 

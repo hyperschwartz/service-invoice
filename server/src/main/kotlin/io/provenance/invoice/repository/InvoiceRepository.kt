@@ -19,4 +19,10 @@ class InvoiceRepository {
         invoice: Invoice,
         status: InvoiceProcessingStatus
     ): Invoice = transaction { InvoiceRecord.upsert(invoice, status) }.invoice
+
+    fun findAllByFromAddress(fromAddress: String): List<Invoice> =
+        transaction { InvoiceRecord.findAllFromAddress(fromAddress) }
+
+    fun findAllByToAddress(toAddress: String): List<Invoice> =
+        transaction { InvoiceRecord.findAllToAddress(toAddress) }
 }
