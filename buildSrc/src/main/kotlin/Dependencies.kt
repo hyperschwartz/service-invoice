@@ -32,6 +32,7 @@ object Versions {
     const val SpringBoot = "2.5.6"
     const val SpringDependencyManagementPlugin = "1.0.11.RELEASE"
     const val SpringMockk = "3.0.1"
+    const val TestContainers = "1.15.1"
 }
 
 object Plugins {
@@ -56,8 +57,6 @@ object Dependencies {
         val CoroutinesCoreJvm = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", Versions.KotlinCoroutines)
         val CoroutinesReactor = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-reactor", Versions.KotlinCoroutines)
         val CoroutinesJdk8 = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", Versions.KotlinCoroutines)
-        val CoroutinesTest = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-test", Versions.KotlinCoroutines)
-        val KotlinTest = DependencySpec("org.jetbrains.kotlin:kotlin-test", Versions.Kotlin)
     }
 
     // Spring
@@ -67,14 +66,6 @@ object Dependencies {
         val StarterJetty = DependencySpec("org.springframework.boot:spring-boot-starter-jetty")
         val StarterValidation = DependencySpec("org.springframework.boot:spring-boot-starter-validation")
         val StarterWeb = DependencySpec("org.springframework.boot:spring-boot-starter-web")
-        val StarterTest =
-            DependencySpec(
-                name = "org.springframework.boot:spring-boot-starter-test",
-                exclude = listOf(
-                    "org.junit.vintage:junit-vintage-engine",
-                    "org.mockito:mockito-core"
-                )
-            )
     }
 
     // Jackson
@@ -125,10 +116,35 @@ object Dependencies {
     object JavaX {
         val Annotation = DependencySpec("javax.annotation:javax.annotation-api", Versions.JavaX)
     }
+}
 
-    // Testing
-    val Mockk = DependencySpec("io.mockk:mockk", Versions.Mockk)
-    val SpringMockk = DependencySpec("com.ninja-squad:springmockk", Versions.SpringMockk)
+object TestDependencies {
+    object Kotlin {
+        val CoroutinesTest = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-test", Versions.KotlinCoroutines)
+        val KotlinTest = DependencySpec("org.jetbrains.kotlin:kotlin-test", Versions.Kotlin)
+    }
+
+    object MockK {
+        val MockK = DependencySpec("io.mockk:mockk", Versions.Mockk)
+        val SpringMockK = DependencySpec("com.ninja-squad:springmockk", Versions.SpringMockk)
+    }
+
+    object SpringBoot {
+        val StarterTest =
+            DependencySpec(
+                name = "org.springframework.boot:spring-boot-starter-test",
+                exclude = listOf(
+                    "org.junit.vintage:junit-vintage-engine",
+                    "org.mockito:mockito-core"
+                )
+            )
+    }
+
+    object TestContainers {
+        val JUnitJupiter = DependencySpec("org.testcontainers:junit-jupiter", Versions.TestContainers)
+        val Postgres = DependencySpec("org.testcontainers:postgresql", Versions.TestContainers)
+        val TestContainers = DependencySpec("org.testcontainers:testcontainers", Versions.TestContainers)
+    }
 }
 
 data class PluginSpec(

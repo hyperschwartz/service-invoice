@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
     Plugins.SpringBoot.addTo(this)
     Plugins.SpringDependencyManagement.addTo(this)
@@ -49,23 +51,60 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     listOf(
-        Dependencies.Kotlin.CoroutinesTest,
-        Dependencies.Kotlin.KotlinTest,
-        Dependencies.Mockk,
-        Dependencies.SpringBoot.StarterTest,
-        Dependencies.SpringMockk,
+        TestDependencies.Kotlin.CoroutinesTest,
+        TestDependencies.Kotlin.KotlinTest,
+        TestDependencies.MockK.MockK,
+        TestDependencies.MockK.SpringMockK,
+        TestDependencies.SpringBoot.StarterTest,
+        TestDependencies.TestContainers.JUnitJupiter,
+        TestDependencies.TestContainers.Postgres,
+        TestDependencies.TestContainers.TestContainers,
     ).forEach { it.testImplementation(this) }
 }
+
+val testListener = ProjectTestLoggingListener(project)
 
 tasks.withType<Test> {
     useJUnitPlatform {
         includeEngines("junit-jupiter")
     }
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
+    addTestListener(testListener)
+    // Force tests to run every single time even if up to date
+    outputs.upToDateWhen { false }
 }
 
 tasks.bootRun {
     args("--spring.profiles.active=development")
+}
+
+// Let gradle know that the integration test directory is for test runnin'
+sourceSets {
+    create("integrationTest") {
+        compileClasspath += main.get().output + test.get().output + configurations.testCompileClasspath + configurations.testCompileOnly
+        runtimeClasspath += main.get().output + test.get().output + compileClasspath
+        java.srcDir("integrationTest")
+    }
+}
+
+tasks.register<Test>("integrationTest") {
+    description = "Run integration tests"
+    group = "verification"
+    // Points to where the test files live
+    testClassesDirs = sourceSets["integrationTest"].output.classesDirs
+    // Tell the integration test suite where it gains files from. Includes test classpath for mock utilities
+    classpath = sourceSets["main"].runtimeClasspath + sourceSets["test"].runtimeClasspath + sourceSets["integrationTest"].runtimeClasspath
+    testLogging {
+        // Shows all application logs as integration tests execute. Uncomment if debugging needed:
+        //showStandardStreams = true
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+    useJUnitPlatform {
+        excludeTags = setOf("intTest")
+        includeEngines = setOf("junit-jupiter", "junit-vintage")
+    }
+    // Ensure test containers are enabled by default if none is provided
+    systemProperty(
+        "spring.profiles.active",
+        System.getenv("SPRING_PROFILES_ACTIVE") ?: "development,test-containers",
+    )
 }

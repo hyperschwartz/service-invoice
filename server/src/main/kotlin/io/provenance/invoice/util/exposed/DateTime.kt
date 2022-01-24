@@ -38,6 +38,7 @@ class OffsetTimeColumnType : ColumnType() {
         return OffsetTime.parse(rs.getString(index), psqlTimeTzFormatter)
     }
 
+    @Suppress("DEPRECATION")
     override fun valueFromDB(value: Any): Any = when (value) {
         is java.sql.Time -> OffsetTime.of(value.toLocalTime(), ZoneOffset.ofHours(-(value.timezoneOffset / 60)))
         else -> value
