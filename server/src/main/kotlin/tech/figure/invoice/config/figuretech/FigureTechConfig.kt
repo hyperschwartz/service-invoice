@@ -1,6 +1,7 @@
 package tech.figure.invoice.config.figuretech
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -11,6 +12,7 @@ import tech.figure.invoice.config.ConfigurationUtil
 @EnableConfigurationProperties(value = [FigureTechProperties::class])
 class FigureTechConfig {
     @Bean
+    @ConditionalOnProperty(name = ["simulated.asset_onboarding_api"], havingValue = "false")
     fun onboardingApiClient(
         mapper: ObjectMapper,
         props: FigureTechProperties

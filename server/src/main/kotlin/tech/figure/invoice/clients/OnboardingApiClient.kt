@@ -16,8 +16,8 @@ import tech.figure.invoice.util.extension.deriveDefaultInstance
 @Headers("Content-Type: application/json")
 interface OnboardingApiClient {
     @Headers(
-        "${AppHeaders.WALLET_ADDRESS}: {address}",
-        "${AppHeaders.WALLET_PUBLIC_KEY}: {publicKey}",
+        "${AppHeaders.ADDRESS}: {address}",
+        "${AppHeaders.PUBLIC_KEY}: {publicKey}",
     )
     @RequestLine("POST /api/v1/asset?permissionAssetManager=false")
     fun generateOnboarding(
@@ -43,7 +43,7 @@ data class OnboardingResponse(
      */
     private inline fun <reified T: Message> TxBody.decodeMessage(): T =
         T::class.deriveDefaultInstance().let(Any::pack).typeUrl.let { targetType ->
-            json.messagesList.single { it.typeUrl == targetType }
+            this.messagesList.single { it.typeUrl == targetType }
                 .unpack(T::class.java)
         }
 }

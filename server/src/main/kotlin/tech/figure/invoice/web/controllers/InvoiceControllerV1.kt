@@ -15,6 +15,7 @@ import tech.figure.invoice.domain.wallet.WalletDetails
 import tech.figure.invoice.repository.InvoiceRepository
 import tech.figure.invoice.services.InvoiceService
 import tech.figure.invoice.services.OnboardInvoiceRequest
+import tech.figure.invoice.services.OnboardInvoiceResponse
 import java.util.UUID
 
 @RestController
@@ -31,12 +32,13 @@ class InvoiceControllerV1(
     @PostMapping("/onboard")
     fun onboardInvoice(
         @RequestBody invoice: Invoice,
-        @RequestHeader(AppHeaders.WALLET_ADDRESS) address: String,
-        @RequestHeader(AppHeaders.WALLET_PUBLIC_KEY) publicKey: String,
-    ): Invoice = invoiceService.onboardInvoice(request = OnboardInvoiceRequest(
-        invoice = invoice,
-        walletDetails = WalletDetails(address = address, publicKey = publicKey),
-    )
+        @RequestHeader(AppHeaders.ADDRESS) address: String,
+        @RequestHeader(AppHeaders.PUBLIC_KEY) publicKey: String,
+    ): OnboardInvoiceResponse = invoiceService.onboardInvoice(
+        request = OnboardInvoiceRequest(
+            invoice = invoice,
+            walletDetails = WalletDetails(address = address, publicKey = publicKey),
+        )
     )
 
     @GetMapping("/address/from/{fromAddress}")

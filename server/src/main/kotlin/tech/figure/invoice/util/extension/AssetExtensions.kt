@@ -11,6 +11,7 @@ import tech.figure.invoice.AssetProtos.AssetType
 import tech.figure.invoice.AssetProtosBuilders
 import tech.figure.invoice.InvoiceProtos.Invoice
 import tech.figure.invoice.InvoiceProtos.InvoiceOrBuilder
+import tech.figure.invoice.UtilProtos
 import tech.figure.invoice.util.randomProtoUuid
 import java.math.BigDecimal
 
@@ -21,6 +22,7 @@ fun AssetType.assetKvName(): String = this.getExtensionValue(AssetProtos.assetKv
 fun InvoiceOrBuilder.toAsset(): Asset = this.toAsset(
     assetType = AssetType.NFT,
     assetDescription = "${AssetType.NFT.provenanceName()} [${this.invoiceUuid.value}]",
+    idProvider = { invoiceUuid },
 )
 
 fun AssetOrBuilder.unpackInvoice(): Invoice = this
@@ -32,9 +34,10 @@ fun AssetOrBuilder.unpackInvoice(): Invoice = this
 private fun <T: MessageOrBuilder> T.toAsset(
     assetType: AssetType,
     assetDescription: String = assetType.provenanceName(),
+    idProvider: (T) -> UtilProtos.UUID = { randomProtoUuid() },
 ): Asset = this.let { message ->
     AssetProtosBuilders.Asset {
-        id = randomProtoUuid()
+        id = idProvider.invoke(message)
         type = assetType.name
         description = assetDescription
         putKv(assetType.assetKvName(), message.toProtoAny())

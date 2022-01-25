@@ -1,10 +1,9 @@
-package tech.figure.invoice.test.testhelpers
+package tech.figure.invoice.services.mock
 
 import helper.MockProtoUtil
+import helper.TestConstants
 import helper.assertSucceeds
 import org.junit.jupiter.api.Test
-import tech.figure.invoice.testhelpers.AssetOnboardingMocker
-import tech.figure.invoice.testhelpers.testcontainers.IntTestConstants
 import tech.figure.invoice.util.extension.toAsset
 import tech.figure.invoice.util.extension.toUuid
 import kotlin.test.assertEquals
@@ -18,7 +17,7 @@ class TestAssetOnboardingMocker {
             AssetOnboardingMocker.mockAssetResponse(
                 asset = asset,
                 publicKey = "YOLO",
-                address = IntTestConstants.VALID_ADDRESS,
+                address = TestConstants.VALID_ADDRESS,
             )
         }
     }
@@ -30,8 +29,8 @@ class TestAssetOnboardingMocker {
         val response = assertSucceeds("A valid public key and address should produce output") {
             AssetOnboardingMocker.mockAssetResponse(
                 asset = asset,
-                publicKey = IntTestConstants.VALID_PUBLIC_KEY,
-                address = IntTestConstants.VALID_ADDRESS,
+                publicKey = TestConstants.VALID_PUBLIC_KEY,
+                address = TestConstants.VALID_ADDRESS,
             )
         }
         val writeScopeRequest = assertSucceeds("Expected the MsgWriteScopeRequest to be properly unpacked") { response.writeScopeRequest }

@@ -6,7 +6,6 @@ import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
-import org.testcontainers.containers.PostgreSQLContainer
 import java.util.UUID
 
 /**
@@ -56,8 +55,7 @@ class TestContainersInit : ApplicationContextInitializer<ConfigurableApplication
     }
 }
 
-// FIXME: Find a way to do this without using the UnsafeVariance annotation.  There's gotta be a way!
-interface TestContainerTemplate<out T: GenericContainer<@UnsafeVariance T>> {
+interface TestContainerTemplate<out T: GenericContainer<out T>> {
     val containerName: String
 
     fun buildContainer(network: Network): T

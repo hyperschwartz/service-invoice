@@ -1,13 +1,13 @@
 package tech.figure.invoice.test.service
 
 import helper.MockProtoUtil
+import helper.TestConstants
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import tech.figure.invoice.domain.wallet.WalletDetails
 import tech.figure.invoice.services.InvoiceService
 import tech.figure.invoice.services.OnboardInvoiceRequest
 import tech.figure.invoice.testhelpers.IntTestBase
-import tech.figure.invoice.testhelpers.testcontainers.IntTestConstants
 
 class InvoiceServiceTest : IntTestBase() {
     @Autowired lateinit var invoiceService: InvoiceService
@@ -18,8 +18,8 @@ class InvoiceServiceTest : IntTestBase() {
             request = OnboardInvoiceRequest(
                 invoice = MockProtoUtil.getMockInvoice(),
                 walletDetails = WalletDetails(
-                    address = IntTestConstants.VALID_ADDRESS,
-                    publicKey = IntTestConstants.VALID_PUBLIC_KEY,
+                    address = TestConstants.VALID_ADDRESS,
+                    publicKey = TestConstants.VALID_PUBLIC_KEY,
                 )
             )
         )

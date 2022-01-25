@@ -3,7 +3,6 @@ package tech.figure.invoice.testhelpers.testcontainers
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KLogging
 import org.mockserver.client.MockServerClient
-import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpRequest.request
 import org.mockserver.model.HttpResponse.response
 import org.testcontainers.containers.MockServerContainer
@@ -12,8 +11,7 @@ import org.testcontainers.utility.DockerImageName
 import tech.figure.invoice.AssetProtos.Asset
 import tech.figure.invoice.config.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
 import tech.figure.invoice.config.web.AppHeaders
-import tech.figure.invoice.testhelpers.AssetOnboardingMocker
-import tech.figure.invoice.util.extension.checkNotNull
+import tech.figure.invoice.services.mock.AssetOnboardingMocker
 
 class MockAssetOnboardingServiceContainer : TestContainerTemplate<MockServerContainer> {
     private companion object : KLogging() {
@@ -28,31 +26,34 @@ class MockAssetOnboardingServiceContainer : TestContainerTemplate<MockServerCont
         .withNetwork(network)
 
     override fun afterStartup(container: MockServerContainer) {
+        // Establish mocked routes and their expected responses
         MockServerClient(container.containerIpAddress, container.serverPort)
+            // Emulate a call to onboarding api's asset transaction generation. Parallels the call in OnboardingApiClient.kt
             .`when`(request().withPath("/api/v1/asset"))
             .respond { request ->
-                val asset = DEFAULT_OBJECT_MAPPER.readValue<Asset>(request.body.rawBytes)
-                val onboardingTx = AssetOnboardingMocker.mockAssetResponse(
-                    asset = asset,
-                    publicKey = request.headerValue(AppHeaders.WALLET_PUBLIC_KEY),
-                    address = request.headerValue(AppHeaders.WALLET_ADDRESS),
-                )
-                response().withStatusCode(200)
-                    .withHeader("Content-Type", "application/json")
-                    .withBody(DEFAULT_OBJECT_MAPPER.writeValueAsString(onboardingTx))
+                val apiKey = request.headerValueOrNull(AppHeaders.API_KEY)
+                if (apiKey.isNullOrBlank()) {
+                    response().withStatusCode(401)
+                        .withJsonContentType()
+                        .withBodyAsJson(SimpleMockResponse("Unauthorized"))
+                } else {
+                    request.tryHandle { req ->
+                        val asset = DEFAULT_OBJECT_MAPPER.readValue<Asset>(req.body.rawBytes)
+                        val onboardingTx = AssetOnboardingMocker.mockAssetResponse(
+                            asset = asset,
+                            publicKey = req.headerValue(AppHeaders.PUBLIC_KEY),
+                            address = req.headerValue(AppHeaders.ADDRESS),
+                        )
+                        response().withStatusCode(200)
+                            .withJsonContentType()
+                            .withBodyAsJson(onboardingTx)
+                    }
+                }
             }
     }
 
     override fun getTestProperties(container: MockServerContainer): List<String> = listOf(
+        // Ensure that calls to the onboarding api are funneled through this container
         "figure.tech.onboarding_api_prefix=http://${container.containerIpAddress}:${container.serverPort}"
     )
-
-    private fun HttpRequest.headerValue(headerName: String): String = headers
-        .entries
-        .singleOrNull { it.name.value == headerName }
-        .checkNotNull { "No single header with name [$headerName] was present in the request to [${this.path.value}]" }
-        .values
-        .singleOrNull()
-        .checkNotNull { "Request header [$headerName] did not point to a single value" }
-        .value
 }

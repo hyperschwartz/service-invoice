@@ -1,4 +1,4 @@
-package tech.figure.invoice.testhelpers
+package tech.figure.invoice.services.mock
 
 import com.google.common.io.BaseEncoding
 import cosmos.tx.v1beta1.TxOuterClass.TxBody
