@@ -19,3 +19,7 @@ fun <T> T.check(predicate: (T) -> Boolean, lazyMessage: () -> String = { "Check 
 }
 
 fun <T: Any, U: Any> T.ifOrNull(predicate: (T) -> Boolean, fn: (T) -> U): U? = if (predicate(this)) fn(this) else null
+
+fun <T: Any> T.wrapList(): List<T> = listOf(this)
+
+fun <T: Any> T.wrapSet(): Set<T> = setOf(this)

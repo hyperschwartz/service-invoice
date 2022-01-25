@@ -22,6 +22,8 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.util.UUID
+import kotlin.reflect.KClass
+import kotlin.reflect.full.functions
 
 //
 // UUID
@@ -110,3 +112,15 @@ inline fun <reified T: Message.Builder> MessageOrBuilder.toBuilderDynamic(): T =
     throw IllegalArgumentException("Faile to construct builder for type [${this::class.qualifiedName}]", e)
 }
 
+/**
+ * Reflection "hack" to get the default instance of a Message from the KClass instance.
+ * Note: This is practically guaranteed to be a slow invocation, so using this is a guaranteed performance hit.
+ */
+@Suppress("UNCHECKED_CAST")
+fun <T: Message> KClass<T>.deriveDefaultInstance(): T = this
+    .functions
+    .singleOrNull { it.name == "getDefaultInstance" }
+    .checkNotNull { "Could not resolve static default getDefaultInstance function for protobuf Message class ${this.qualifiedName}" }
+    .call()
+    .let { it as? T }
+    .checkNotNull { "Unable to cast default instance of class [${this.qualifiedName}] to a usable format" }

@@ -1,4 +1,4 @@
-package tech.figure.invoice.base
+package tech.figure.invoice.testhelpers
 
 import mu.KLogging
 import org.springframework.boot.test.util.TestPropertyValues

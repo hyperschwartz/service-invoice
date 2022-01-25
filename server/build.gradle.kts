@@ -57,6 +57,8 @@ dependencies {
         Dependencies.Provenance.ProvenanceGrpcClient,
         Dependencies.Provenance.ProvenanceHdWallet,
         Dependencies.Provenance.ProvenanceProto,
+        Dependencies.Provenance.ScopeSdk,
+        Dependencies.Provenance.ScopeUtil,
         Dependencies.SpringBoot.Starter,
         Dependencies.SpringBoot.StarterAOP,
         Dependencies.SpringBoot.StarterJetty,
@@ -72,11 +74,21 @@ dependencies {
         TestDependencies.Kotlin.KotlinTest,
         TestDependencies.MockK.MockK,
         TestDependencies.MockK.SpringMockK,
-        TestDependencies.SpringBoot.StarterTest,
         TestDependencies.TestContainers.JUnitJupiter,
+        TestDependencies.TestContainers.MockServer,
         TestDependencies.TestContainers.Postgres,
         TestDependencies.TestContainers.TestContainers,
+        TestDependencies.SpringBoot.StarterTest,
     ).forEach { it.testImplementation(this) }
+}
+
+// Let gradle know that the integration test directory is for test runnin'
+sourceSets {
+    create("integrationTest") {
+        compileClasspath += main.get().output + test.get().output + configurations.testCompileClasspath + configurations.testCompileOnly
+        runtimeClasspath += main.get().output + test.get().output + compileClasspath
+        java.srcDir("integrationTest")
+    }
 }
 
 val testListener = ProjectTestLoggingListener(project)
@@ -92,15 +104,6 @@ tasks.withType<Test> {
 
 tasks.bootRun {
     args("--spring.profiles.active=development")
-}
-
-// Let gradle know that the integration test directory is for test runnin'
-sourceSets {
-    create("integrationTest") {
-        compileClasspath += main.get().output + test.get().output + configurations.testCompileClasspath + configurations.testCompileOnly
-        runtimeClasspath += main.get().output + test.get().output + compileClasspath
-        java.srcDir("integrationTest")
-    }
 }
 
 tasks.register<Test>("integrationTest") {

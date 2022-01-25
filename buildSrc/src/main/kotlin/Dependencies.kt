@@ -22,17 +22,18 @@ object Versions {
     const val Mockk = "1.12.0"
     const val Node = "14.17.3"
     const val Postgres = "42.2.19"
-    const val Protobuf = "3.6.1"
+    const val Protobuf = "3.12.0"
     const val ProtobufPlugin = "0.8.16"
     // Both client and proto libraries have coupled versions. Found via inspecting dependencies brought in via client
     const val ProvenanceClient = "1.0.1"
     const val ProvenanceHdWallet = "0.1.9"
     // This version is pinned because ProvenanceClient implementation does not bring it along, and matching it allows access to query protos
     const val ProvenanceProto = "1.7.0-0.0.2"
+    const val ProvenanceScope = "0.4.4"
     const val SpringBoot = "2.5.6"
     const val SpringDependencyManagementPlugin = "1.0.11.RELEASE"
     const val SpringMockk = "3.0.1"
-    const val TestContainers = "1.15.1"
+    const val TestContainers = "1.16.3"
 }
 
 object Plugins {
@@ -99,11 +100,13 @@ object Dependencies {
         val ProvenanceGrpcClient = DependencySpec("io.provenance.client:pb-grpc-client-kotlin", Versions.ProvenanceClient)
         val ProvenanceHdWallet = DependencySpec("io.provenance.hdwallet:hdwallet", Versions.ProvenanceHdWallet)
         val ProvenanceProto = DependencySpec("io.provenance.protobuf:pb-proto-java", Versions.ProvenanceProto)
+        val ScopeSdk = DependencySpec("io.provenance.scope:sdk", Versions.ProvenanceScope)
+        val ScopeUtil = DependencySpec("io.provenance.scope:util", Versions.ProvenanceScope)
     }
 
     // GRPC (for Provenance - required dependencies because Prov stuff only brings in GRPC for runtime)
     object Grpc {
-        val GrpcProtobuf = DependencySpec("io.grpc:grpc-protobuf", Versions.Grpc)
+        val GrpcProtobuf = DependencySpec("io.grpc:grpc-protobuf", Versions.Grpc, exclude = listOf("com.google.protobuf:protobuf-java", "com.google.protobuf:protobuf-java-util"))
         val GrpcStub = DependencySpec("io.grpc:grpc-stub", Versions.Grpc)
     }
 
@@ -142,6 +145,7 @@ object TestDependencies {
 
     object TestContainers {
         val JUnitJupiter = DependencySpec("org.testcontainers:junit-jupiter", Versions.TestContainers)
+        val MockServer = DependencySpec("org.testcontainers:mockserver", Versions.TestContainers)
         val Postgres = DependencySpec("org.testcontainers:postgresql", Versions.TestContainers)
         val TestContainers = DependencySpec("org.testcontainers:testcontainers", Versions.TestContainers)
     }

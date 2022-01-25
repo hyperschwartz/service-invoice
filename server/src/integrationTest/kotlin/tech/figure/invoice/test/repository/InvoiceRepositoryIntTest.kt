@@ -1,9 +1,10 @@
-package tech.figure.invoice.repository
+package tech.figure.invoice.test.repository
 
 import helper.MockProtoUtil
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import tech.figure.invoice.base.IntTestBase
+import tech.figure.invoice.testhelpers.IntTestBase
+import tech.figure.invoice.repository.InvoiceRepository
 import tech.figure.invoice.util.enums.InvoiceProcessingStatus
 import tech.figure.invoice.util.extension.toUuid
 import java.util.UUID

@@ -1,4 +1,4 @@
-package tech.figure.invoice.base
+package tech.figure.invoice.testhelpers
 
 import org.junit.Before
 import org.junit.runner.RunWith
