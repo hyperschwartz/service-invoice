@@ -8,6 +8,7 @@ import org.springframework.test.context.TestExecutionListeners
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener
 import tech.figure.invoice.Application
+import tech.figure.invoice.testhelpers.testcontainers.TestContainersInit
 import java.util.TimeZone
 
 // Enable test containers to start with the app if the spring profile test-containers is included

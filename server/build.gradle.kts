@@ -76,6 +76,7 @@ dependencies {
         TestDependencies.MockK.SpringMockK,
         TestDependencies.TestContainers.JUnitJupiter,
         TestDependencies.TestContainers.MockServer,
+        TestDependencies.TestContainers.MockServerClient,
         TestDependencies.TestContainers.Postgres,
         TestDependencies.TestContainers.TestContainers,
         TestDependencies.SpringBoot.StarterTest,

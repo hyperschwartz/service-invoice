@@ -20,6 +20,7 @@ object Versions {
     const val KotlinLogging = "2.1.21"
     const val Kroto = "0.6.1"
     const val Mockk = "1.12.0"
+    const val MockServer = "5.11.2"
     const val Node = "14.17.3"
     const val Postgres = "42.2.19"
     const val Protobuf = "3.12.0"
@@ -146,6 +147,7 @@ object TestDependencies {
     object TestContainers {
         val JUnitJupiter = DependencySpec("org.testcontainers:junit-jupiter", Versions.TestContainers)
         val MockServer = DependencySpec("org.testcontainers:mockserver", Versions.TestContainers)
+        val MockServerClient = DependencySpec("org.mock-server:mockserver-client-java", Versions.MockServer)
         val Postgres = DependencySpec("org.testcontainers:postgresql", Versions.TestContainers)
         val TestContainers = DependencySpec("org.testcontainers:testcontainers", Versions.TestContainers)
     }
