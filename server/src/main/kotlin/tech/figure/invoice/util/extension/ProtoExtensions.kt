@@ -86,6 +86,7 @@ fun <T: Any> T.genericToProtoAny(): com.google.protobuf.Any = when (this) {
     is OffsetDateTime -> toProtoAny()
     else -> throw IllegalArgumentException("Unable to convert value of type [${this::class.qualifiedName}] to proto Any. Specified type is not supported")
 }
+inline fun <reified T: Message> com.google.protobuf.Any.typedUnpack(): T = this.unpack(T::class.java)
 
 //
 // Generic

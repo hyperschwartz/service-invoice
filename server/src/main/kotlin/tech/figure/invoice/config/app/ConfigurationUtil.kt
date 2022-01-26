@@ -1,4 +1,4 @@
-package tech.figure.invoice.config
+package tech.figure.invoice.config.app
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature

@@ -3,7 +3,7 @@ package tech.figure.invoice.testhelpers.testcontainers
 import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpResponse
 import org.mockserver.model.HttpResponse.response
-import tech.figure.invoice.config.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
+import tech.figure.invoice.config.app.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
 import tech.figure.invoice.util.extension.checkNotNull
 
 data class SimpleMockResponse(val msg: String)

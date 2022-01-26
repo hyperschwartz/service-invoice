@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import tech.figure.invoice.clients.OnboardingApiClient
-import tech.figure.invoice.config.ConfigurationUtil
+import tech.figure.invoice.config.app.ConfigurationUtil
 
 @Configuration
 @EnableConfigurationProperties(value = [FigureTechProperties::class])

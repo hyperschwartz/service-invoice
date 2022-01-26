@@ -12,6 +12,7 @@ import io.provenance.metadata.v1.MsgWriteSessionRequest
 import tech.figure.invoice.AssetProtos.Asset
 import tech.figure.invoice.config.web.AppHeaders
 import tech.figure.invoice.util.extension.deriveDefaultInstance
+import tech.figure.invoice.util.extension.typedUnpack
 
 @Headers("Content-Type: application/json")
 interface OnboardingApiClient {
@@ -34,16 +35,18 @@ data class OnboardingResponse(
     // Each individual message in the transaction is returned as a Base64 encoded string
     val base64: List<String>,
 ) {
-    val writeScopeRequest: MsgWriteScopeRequest by lazy { json.decodeMessage() }
-    val writeSessionRequest: MsgWriteSessionRequest by lazy { json.decodeMessage() }
-    val writeRecordRequest: MsgWriteRecordRequest by lazy { json.decodeMessage() }
+    val writeScopeRequestAny: Any by lazy { json.decodeMessage<MsgWriteScopeRequest>() }
+    val writeSessionRequestAny: Any by lazy { json.decodeMessage<MsgWriteSessionRequest>() }
+    val writeRecordRequestAny: Any by lazy { json.decodeMessage<MsgWriteRecordRequest>() }
+    val writeScopeRequest: MsgWriteScopeRequest by lazy { writeScopeRequestAny.typedUnpack() }
+    val writeSessionRequest: MsgWriteSessionRequest by lazy { writeSessionRequestAny.typedUnpack() }
+    val writeRecordRequest: MsgWriteRecordRequest by lazy { writeRecordRequestAny.typedUnpack() }
 
     /**
      * Dynamic unpacking from the source
      */
-    private inline fun <reified T: Message> TxBody.decodeMessage(): T =
+    private inline fun <reified T: Message> TxBody.decodeMessage(): Any =
         T::class.deriveDefaultInstance().let(Any::pack).typeUrl.let { targetType ->
             this.messagesList.single { it.typeUrl == targetType }
-                .unpack(T::class.java)
         }
 }

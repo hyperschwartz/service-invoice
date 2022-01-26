@@ -1,5 +1,6 @@
 package tech.figure.invoice.services
 
+import com.google.protobuf.Any
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -37,6 +38,9 @@ class InvoiceService(
         val upsertedInvoice = invoiceRepository.upsert(invoice = request.invoice, status = InvoiceProcessingStatus.PENDING_STAMP)
         return OnboardInvoiceResponse(
             invoice = upsertedInvoice,
+            writeScopeRequestAny = onboardingResponse.writeScopeRequestAny,
+            writeSessionRequestAny = onboardingResponse.writeSessionRequestAny,
+            writeRecordRequestAny = onboardingResponse.writeRecordRequestAny,
             writeScopeRequest = onboardingResponse.writeScopeRequest,
             writeSessionRequest = onboardingResponse.writeSessionRequest,
             writeRecordRequest = onboardingResponse.writeRecordRequest,
@@ -51,6 +55,9 @@ data class OnboardInvoiceRequest(
 
 data class OnboardInvoiceResponse(
     val invoice: Invoice,
+    val writeScopeRequestAny: Any,
+    val writeSessionRequestAny: Any,
+    val writeRecordRequestAny: Any,
     val writeScopeRequest: MsgWriteScopeRequest,
     val writeSessionRequest: MsgWriteSessionRequest,
     val writeRecordRequest: MsgWriteRecordRequest,

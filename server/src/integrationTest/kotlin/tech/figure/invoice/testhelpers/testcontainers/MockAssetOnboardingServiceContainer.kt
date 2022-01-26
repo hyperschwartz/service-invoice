@@ -9,7 +9,7 @@ import org.testcontainers.containers.MockServerContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.utility.DockerImageName
 import tech.figure.invoice.AssetProtos.Asset
-import tech.figure.invoice.config.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
+import tech.figure.invoice.config.app.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
 import tech.figure.invoice.config.web.AppHeaders
 import tech.figure.invoice.services.mock.AssetOnboardingMocker
 
