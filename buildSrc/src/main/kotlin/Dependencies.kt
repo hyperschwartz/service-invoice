@@ -23,7 +23,7 @@ object Versions {
     const val MockServer = "5.11.2"
     const val Node = "14.17.3"
     const val Postgres = "42.2.19"
-    const val Protobuf = "3.12.0"
+    const val Protobuf = "3.19.1"
     const val ProtobufPlugin = "0.8.16"
     // Both client and proto libraries have coupled versions. Found via inspecting dependencies brought in via client
     const val ProvenanceClient = "1.0.1"

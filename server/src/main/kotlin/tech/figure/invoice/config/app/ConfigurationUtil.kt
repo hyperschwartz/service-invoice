@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.google.protobuf.util.JsonFormat.TypeRegistry
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule
 import feign.Feign
 import feign.Logger
@@ -18,10 +19,16 @@ import feign.Retryer
 import feign.codec.ErrorDecoder
 import feign.jackson.JacksonDecoder
 import feign.jackson.JacksonEncoder
+import io.provenance.metadata.v1.MsgWriteContractSpecificationRequest
+import io.provenance.metadata.v1.MsgWriteRecordRequest
+import io.provenance.metadata.v1.MsgWriteRecordSpecificationRequest
+import io.provenance.metadata.v1.MsgWriteScopeRequest
+import io.provenance.metadata.v1.MsgWriteScopeSpecificationRequest
+import io.provenance.metadata.v1.MsgWriteSessionRequest
 import mu.KLogging
 import tech.figure.invoice.config.web.AppHeaders
 
-// Shared functionality to allow configurations to be generated in non-server environemnts (testing)
+// Shared functionality to allow configurations to be generated in non-server environments (testing)
 object ConfigurationUtil {
     /**
      * Generates the default Feign configurations for a builder to take a properly-declared interface and convert it to
@@ -48,7 +55,7 @@ object ConfigurationUtil {
             apiKey?.also { a -> builder.requestInterceptor(ApiKeyRequestInterceptor(a)) }
         }
 
-    fun getObjectMapper(): ObjectMapper = ObjectMapper()
+    private fun getObjectMapper(): ObjectMapper = ObjectMapper()
         .registerKotlinModule()
         .registerModule(JavaTimeModule())
         .registerModule(ProtobufModule())
@@ -56,9 +63,20 @@ object ConfigurationUtil {
         .setSerializationInclusion(JsonInclude.Include.NON_NULL)
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
+    private fun getProvenanceTypeRegistry(): TypeRegistry = TypeRegistry.newBuilder()
+        .add(MsgWriteContractSpecificationRequest.getDescriptor())
+        .add(MsgWriteScopeSpecificationRequest.getDescriptor())
+        .add(MsgWriteScopeRequest.getDescriptor())
+        .add(MsgWriteSessionRequest.getDescriptor())
+        .add(MsgWriteRecordSpecificationRequest.getDescriptor())
+        .add(MsgWriteRecordRequest.getDescriptor())
+        .build()
+
     // This object should be used across the application anywhere spring is not accessible.  Otherwise, just inject the
     // Spring bean to get it
     val DEFAULT_OBJECT_MAPPER: ObjectMapper by lazy { getObjectMapper() }
+
+    val DEFAULT_PROVENANCE_TYPE_REGISTRY: TypeRegistry by lazy { getProvenanceTypeRegistry() }
 }
 
 class FeignLogger : Logger() {

@@ -12,6 +12,7 @@ import tech.figure.invoice.repository.InvoiceRepository
 import tech.figure.invoice.util.enums.InvoiceProcessingStatus
 import tech.figure.invoice.util.extension.toAsset
 import tech.figure.invoice.util.extension.toUuid
+import tech.figure.invoice.util.extension.typedUnpack
 import tech.figure.invoice.util.validation.InvoiceValidator
 
 @Service
@@ -38,12 +39,12 @@ class InvoiceService(
         val upsertedInvoice = invoiceRepository.upsert(invoice = request.invoice, status = InvoiceProcessingStatus.PENDING_STAMP)
         return OnboardInvoiceResponse(
             invoice = upsertedInvoice,
-            writeScopeRequestAny = onboardingResponse.writeScopeRequestAny,
-            writeSessionRequestAny = onboardingResponse.writeSessionRequestAny,
-            writeRecordRequestAny = onboardingResponse.writeRecordRequestAny,
-            writeScopeRequest = onboardingResponse.writeScopeRequest,
-            writeSessionRequest = onboardingResponse.writeSessionRequest,
-            writeRecordRequest = onboardingResponse.writeRecordRequest,
+            writeScopeRequestAny = onboardingResponse.writeScopeRequest,
+            writeSessionRequestAny = onboardingResponse.writeSessionRequest,
+            writeRecordRequestAny = onboardingResponse.writeRecordRequest,
+            writeScopeRequest = onboardingResponse.writeScopeRequest.typedUnpack(),
+            writeSessionRequest = onboardingResponse.writeSessionRequest.typedUnpack(),
+            writeRecordRequest = onboardingResponse.writeRecordRequest.typedUnpack(),
         )
     }
 }

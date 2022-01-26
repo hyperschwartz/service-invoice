@@ -1,5 +1,6 @@
 package tech.figure.invoice.clients
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.google.protobuf.Any
 import com.google.protobuf.Message
 import cosmos.tx.v1beta1.TxOuterClass.TxBody
@@ -11,8 +12,9 @@ import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
 import tech.figure.invoice.AssetProtos.Asset
 import tech.figure.invoice.config.web.AppHeaders
+import tech.figure.invoice.util.extension.checkNotNull
 import tech.figure.invoice.util.extension.deriveDefaultInstance
-import tech.figure.invoice.util.extension.typedUnpack
+import tech.figure.invoice.util.extension.mergeFromJsonProvenance
 
 @Headers("Content-Type: application/json")
 interface OnboardingApiClient {
@@ -31,22 +33,24 @@ interface OnboardingApiClient {
 data class OnboardingResponse(
     // service-asset-onboarding returns an encoded Cosmos TxBody proto labeled as "json," serialized as an ObjectNode.
     // The underlying value is a TxBody, so we can just deserialize straight to the source here
-    val json: TxBody,
+    val json: ObjectNode,
     // Each individual message in the transaction is returned as a Base64 encoded string
     val base64: List<String>,
 ) {
-    val writeScopeRequestAny: Any by lazy { json.decodeMessage<MsgWriteScopeRequest>() }
-    val writeSessionRequestAny: Any by lazy { json.decodeMessage<MsgWriteSessionRequest>() }
-    val writeRecordRequestAny: Any by lazy { json.decodeMessage<MsgWriteRecordRequest>() }
-    val writeScopeRequest: MsgWriteScopeRequest by lazy { writeScopeRequestAny.typedUnpack() }
-    val writeSessionRequest: MsgWriteSessionRequest by lazy { writeSessionRequestAny.typedUnpack() }
-    val writeRecordRequest: MsgWriteRecordRequest by lazy { writeRecordRequestAny.typedUnpack() }
+    private val txBody: TxBody by lazy { TxBody.newBuilder().mergeFromJsonProvenance(json).build() }
+
+    val writeScopeRequest: Any by lazy { txBody.decodeMessage<MsgWriteScopeRequest>() }
+    val writeSessionRequest: Any by lazy { txBody.decodeMessage<MsgWriteSessionRequest>() }
+    val writeRecordRequest: Any by lazy { txBody.decodeMessage<MsgWriteRecordRequest>() }
+
+    override fun toString() = "Received:${System.lineSeparator()}tx body: $json${System.lineSeparator()}base64: $base64"
 
     /**
      * Dynamic unpacking from the source
      */
     private inline fun <reified T: Message> TxBody.decodeMessage(): Any =
         T::class.deriveDefaultInstance().let { Any.pack(it, "") }.typeUrl.let { targetType ->
-            this.messagesList.single { it.typeUrl == targetType }
+            this.messagesList.singleOrNull { it.typeUrl == targetType }
+                .checkNotNull { "Expected response payload to contain an message of type [${T::class.qualifiedName}] but only contained types: ${txBody.messagesList.map { it.typeUrl }}" }
         }
 }

@@ -1,5 +1,7 @@
 package tech.figure.invoice.services.mock
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.io.BaseEncoding
 import cosmos.tx.v1beta1.TxOuterClass.TxBody
 import io.provenance.metadata.v1.MsgWriteRecordRequest
@@ -24,6 +26,7 @@ import io.provenance.scope.util.toByteString
 import io.provenance.scope.util.toUuid
 import tech.figure.invoice.AssetProtos.Asset
 import tech.figure.invoice.clients.OnboardingResponse
+import tech.figure.invoice.util.extension.toJsonProvenance
 import tech.figure.invoice.util.extension.toProtoAny
 import tech.figure.invoice.util.extension.toUuid
 import java.io.ByteArrayInputStream
@@ -64,7 +67,7 @@ object AssetOnboardingMocker {
         val hash = hashAsset(asset, decodedPublicKey)
         val txBody = buildTxBody(asset.id.toUuid(), hash, address)
         return OnboardingResponse(
-            json = txBody,
+            json = ObjectMapper().readValue(txBody.toJsonProvenance()),
             base64 = txBody.messagesList.map { it.toByteArray().toBase64String() },
         )
     }

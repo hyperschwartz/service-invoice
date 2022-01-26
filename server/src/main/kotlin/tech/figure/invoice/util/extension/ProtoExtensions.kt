@@ -1,5 +1,6 @@
 package tech.figure.invoice.util.extension
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.google.protobuf.BoolValue
 import com.google.protobuf.ByteString
 import com.google.protobuf.BytesValue
@@ -10,12 +11,15 @@ import com.google.protobuf.MessageOrBuilder
 import com.google.protobuf.StringValue
 import com.google.protobuf.Timestamp
 import com.google.protobuf.TimestampOrBuilder
+import com.google.protobuf.util.JsonFormat
+import com.google.protobuf.util.JsonFormat.TypeRegistry
 import com.google.protobuf.util.Timestamps
 import tech.figure.invoice.UtilProtos
 import tech.figure.invoice.UtilProtos.Date
 import tech.figure.invoice.UtilProtos.DateOrBuilder
 import tech.figure.invoice.UtilProtos.Decimal
 import tech.figure.invoice.UtilProtos.DecimalOrBuilder
+import tech.figure.invoice.config.app.ConfigurationUtil.DEFAULT_PROVENANCE_TYPE_REGISTRY
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -110,7 +114,7 @@ inline fun <reified T: Message.Builder> MessageOrBuilder.toBuilderDynamic(): T =
         this as T
     }
 } catch (e: Exception) {
-    throw IllegalArgumentException("Faile to construct builder for type [${this::class.qualifiedName}]", e)
+    throw IllegalArgumentException("Failed to construct builder for type [${this::class.qualifiedName}]", e)
 }
 
 /**
@@ -125,3 +129,27 @@ fun <T: Message> KClass<T>.deriveDefaultInstance(): T = this
     .call()
     .let { it as? T }
     .checkNotNull { "Unable to cast default instance of class [${this.qualifiedName}] to a usable format" }
+
+inline fun <reified T: Message.Builder> T.mergeFromJson(json: String, registry: TypeRegistry? = null): T = this.also { messageBuilder ->
+    try {
+        JsonFormat.parser()
+            .let { parser -> registry?.let(parser::usingTypeRegistry) ?: parser }
+            .merge(json, messageBuilder)
+    } catch (e: Exception) {
+        throw IllegalArgumentException("Failed to merge json value to source type [${T::class.java}]")
+    }
+}
+
+inline fun <reified T: Message.Builder> T.mergeFromJson(json: ObjectNode, registry: TypeRegistry? = null): T =
+    mergeFromJson(json.toString(), registry)
+
+inline fun <reified T: Message.Builder> T.mergeFromJsonProvenance(json: String): T =
+    mergeFromJson(json, DEFAULT_PROVENANCE_TYPE_REGISTRY)
+
+inline fun <reified T: Message.Builder> T.mergeFromJsonProvenance(json: ObjectNode): T =
+    mergeFromJsonProvenance(json.toString())
+
+inline fun <reified T: Message> T.toJsonProvenance(): String = JsonFormat
+    .printer()
+    .usingTypeRegistry(DEFAULT_PROVENANCE_TYPE_REGISTRY)
+    .print(this)
