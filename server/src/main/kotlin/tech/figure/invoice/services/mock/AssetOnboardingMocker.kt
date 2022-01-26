@@ -21,6 +21,7 @@ import io.provenance.scope.encryption.ecies.ProvenanceKeyGenerator
 import io.provenance.scope.objectstore.client.SIGNATURE_PUBLIC_KEY_FIELD_NAME
 import io.provenance.scope.util.MetadataAddress
 import io.provenance.scope.util.toByteString
+import io.provenance.scope.util.toUuid
 import tech.figure.invoice.AssetProtos.Asset
 import tech.figure.invoice.clients.OnboardingResponse
 import tech.figure.invoice.util.extension.toProtoAny
@@ -34,7 +35,8 @@ import java.util.UUID
  * Code is a hack to somewhat replicate the responses that service-asset-onboarding returns, without using object store.
  */
 object AssetOnboardingMocker {
-    private val RESPONSE_SPEC_UUID = UUID.randomUUID()
+    private val SCOPE_SPEC_UUID = "551b5eca-921d-4ba7-aded-3966b224f44b".toUuid()
+    private val CONTRACT_SPEC_UUID = "f97ecc5d-c580-478d-be02-6c1b0c32235f".toUuid()
     private const val RECORD_SPEC_NAME = "Asset"
     private val ASSET_SPEC_INPUT = RecordInputSpec(
         name = "AssetHash",
@@ -98,10 +100,10 @@ object AssetOnboardingMocker {
             // Write scope request to maintain the asset
             MsgWriteScopeRequest.newBuilder().also { msgBuilder ->
                 msgBuilder.scopeUuid = assetUuid.toString()
-                msgBuilder.specUuid = RESPONSE_SPEC_UUID.toString()
+                msgBuilder.specUuid = SCOPE_SPEC_UUID.toString()
                 msgBuilder.scopeBuilder.also { scopeBuilder ->
                     scopeBuilder.scopeId = MetadataAddress.forScope(assetUuid).bytes.toByteString()
-                    scopeBuilder.specificationId = MetadataAddress.forScopeSpecification(RESPONSE_SPEC_UUID).bytes.toByteString()
+                    scopeBuilder.specificationId = MetadataAddress.forScopeSpecification(SCOPE_SPEC_UUID).bytes.toByteString()
                     scopeBuilder.valueOwnerAddress = address
                     scopeBuilder.addOwners(party)
                     scopeBuilder.addAllDataAccess(audiences)
@@ -116,7 +118,7 @@ object AssetOnboardingMocker {
                 }
                 msgBuilder.sessionBuilder.also { sessionBuilder ->
                     sessionBuilder.sessionId = MetadataAddress.forSession(assetUuid, sessionUuid).bytes.toByteString()
-                    sessionBuilder.specificationId = MetadataAddress.forContractSpecification(RESPONSE_SPEC_UUID).bytes.toByteString()
+                    sessionBuilder.specificationId = MetadataAddress.forContractSpecification(CONTRACT_SPEC_UUID).bytes.toByteString()
                     sessionBuilder.addParties(party)
                     sessionBuilder.auditBuilder.createdBy = address
                     sessionBuilder.auditBuilder.updatedBy = address
@@ -125,10 +127,10 @@ object AssetOnboardingMocker {
             }.build().toProtoAny(),
             // Write record address to mint the asset
             MsgWriteRecordRequest.newBuilder().also { msgBuilder ->
-                msgBuilder.contractSpecUuid = RESPONSE_SPEC_UUID.toString()
+                msgBuilder.contractSpecUuid = CONTRACT_SPEC_UUID.toString()
                 msgBuilder.recordBuilder.also { recordBuilder ->
                     recordBuilder.sessionId = MetadataAddress.forSession(assetUuid, sessionUuid).bytes.toByteString()
-                    recordBuilder.specificationId = MetadataAddress.forRecordSpecification(RESPONSE_SPEC_UUID, RECORD_SPEC_NAME).bytes.toByteString()
+                    recordBuilder.specificationId = MetadataAddress.forRecordSpecification(CONTRACT_SPEC_UUID, RECORD_SPEC_NAME).bytes.toByteString()
                     recordBuilder.name = RECORD_SPEC_NAME
                     recordBuilder.addInputs(RecordInput.newBuilder().also { inputBuilder ->
                         inputBuilder.name = ASSET_SPEC_INPUT.name

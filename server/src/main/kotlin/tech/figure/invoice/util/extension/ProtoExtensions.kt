@@ -65,7 +65,7 @@ fun DecimalOrBuilder.toBigDecimalOrZero(): BigDecimal = toBigDecimalOrNull() ?: 
 //
 // Any
 //
-fun <T: MessageOrBuilder> T.toProtoAny(): com.google.protobuf.Any = com.google.protobuf.Any.pack(this.buildDynamic())
+fun <T: MessageOrBuilder> T.toProtoAny(): com.google.protobuf.Any = com.google.protobuf.Any.pack(this.buildDynamic(), "")
 fun Boolean.toProtoAny(): com.google.protobuf.Any = BoolValue.newBuilder().setValue(this).build().toProtoAny()
 fun ByteArray.toProtoAny(): com.google.protobuf.Any = BytesValue.newBuilder().setValue(ByteString.copyFrom(this)).build().toProtoAny()
 fun String.toProtoAny(): com.google.protobuf.Any = StringValue.newBuilder().setValue(this).build().toProtoAny()

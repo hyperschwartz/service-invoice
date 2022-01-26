@@ -46,7 +46,7 @@ data class OnboardingResponse(
      * Dynamic unpacking from the source
      */
     private inline fun <reified T: Message> TxBody.decodeMessage(): Any =
-        T::class.deriveDefaultInstance().let(Any::pack).typeUrl.let { targetType ->
+        T::class.deriveDefaultInstance().let { Any.pack(it, "") }.typeUrl.let { targetType ->
             this.messagesList.single { it.typeUrl == targetType }
         }
 }
