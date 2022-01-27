@@ -13,7 +13,7 @@ class AssetOnboardingService(private val onboardingApi: OnboardingApiClient) {
     private companion object : KLogging() {
         private const val DENOM_PREFIX = "invoice"
 
-        fun getDenominationForAsset(asset: Asset): String = "$DENOM_PREFIX${asset.id.value}"
+        fun getDenominationForAsset(asset: Asset): String = "$DENOM_PREFIX-${asset.id.value}"
     }
 
     fun generateOnboardingTransactions(

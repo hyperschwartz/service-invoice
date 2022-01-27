@@ -4,6 +4,8 @@ import com.google.protobuf.Any
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
+import io.provenance.scope.util.MetadataAddress
+import io.provenance.scope.util.toUuid
 import tech.figure.invoice.InvoiceProtos.Invoice
 import mu.KLogging
 import org.springframework.stereotype.Service
@@ -12,8 +14,10 @@ import tech.figure.invoice.repository.InvoiceRepository
 import tech.figure.invoice.util.enums.InvoiceProcessingStatus
 import tech.figure.invoice.util.extension.toAsset
 import tech.figure.invoice.util.extension.toUuid
+import tech.figure.invoice.util.extension.totalAmount
 import tech.figure.invoice.util.extension.typedUnpack
 import tech.figure.invoice.util.validation.InvoiceValidator
+import java.math.BigDecimal
 
 @Service
 class InvoiceService(
@@ -39,11 +43,25 @@ class InvoiceService(
         val upsertedInvoice = invoiceRepository.upsert(invoice = request.invoice, status = InvoiceProcessingStatus.PENDING_STAMP)
         return OnboardInvoiceResponse(
             invoice = upsertedInvoice,
-            markerDenom = assetOnboardingResponse.markerDenom,
-            markerAddress = assetOnboardingResponse.markerAddress,
-            writeScopeRequest = assetOnboardingResponse.onboardingResponse.writeScopeRequest,
-            writeSessionRequest = assetOnboardingResponse.onboardingResponse.writeSessionRequest,
-            writeRecordRequest = assetOnboardingResponse.onboardingResponse.writeRecordRequest,
+            markerCreationDetail = MarkerCreationDetail(
+                markerDenom = assetOnboardingResponse.markerDenom,
+                markerAddress = assetOnboardingResponse.markerAddress,
+                scopeId = MetadataAddress.forScope(
+                    assetOnboardingResponse
+                        .onboardingResponse
+                        .writeScopeRequest
+                        .typedUnpack<MsgWriteScopeRequest>()
+                        .scopeUuid
+                        .toUuid()
+                ).toString(),
+                invoiceTotal = upsertedInvoice.totalAmount(),
+                invoiceDenom = upsertedInvoice.paymentDenom,
+            ),
+            scopeGenerationDetail = ScopeGenerationDetail(
+                writeScopeRequest = assetOnboardingResponse.onboardingResponse.writeScopeRequest,
+                writeSessionRequest = assetOnboardingResponse.onboardingResponse.writeSessionRequest,
+                writeRecordRequest = assetOnboardingResponse.onboardingResponse.writeRecordRequest,
+            ),
         )
     }
 }
@@ -55,8 +73,19 @@ data class OnboardInvoiceRequest(
 
 data class OnboardInvoiceResponse(
     val invoice: Invoice,
+    val markerCreationDetail: MarkerCreationDetail,
+    val scopeGenerationDetail: ScopeGenerationDetail,
+)
+
+data class MarkerCreationDetail(
     val markerDenom: String,
     val markerAddress: String,
+    val scopeId: String,
+    val invoiceDenom: String,
+    val invoiceTotal: BigDecimal,
+)
+
+data class ScopeGenerationDetail(
     val writeScopeRequest: Any,
     val writeSessionRequest: Any,
     val writeRecordRequest: Any,
