@@ -1,6 +1,6 @@
 FROM openjdk:11
 
-#LABEL org.opencontainers.image.source=https://github.com/provenance-io/p8e
+LABEL org.opencontainers.image.source=https://github.com/hyperschwartz/service-invoice
 
 ADD ./build/libs/*.jar /service.jar
 ADD ./docker/docker-entrypoint.sh /docker-entrypoint.sh
