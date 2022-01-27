@@ -1,7 +1,9 @@
 package tech.figure.invoice.web.controllers
 
+import io.provenance.scope.objectstore.util.base64EncodeString
 import tech.figure.invoice.InvoiceProtos.Invoice
 import mu.KLogging
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -20,6 +22,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("${AppRoutes.V1}/invoices", produces = ["application/json"])
+@CrossOrigin(origins = ["http://localhost:3000"])
 class InvoiceControllerV1(
     private val invoiceRepository: InvoiceRepository,
     private val invoiceService: InvoiceService,
@@ -27,7 +30,7 @@ class InvoiceControllerV1(
     private companion object : KLogging()
 
     @GetMapping("/{uuid}")
-    fun getByUuid(@PathVariable uuid: UUID): Invoice? = invoiceRepository.findByUuidOrNull(uuid)
+    fun getByUuid(@PathVariable uuid: UUID): String? = invoiceRepository.findByUuidOrNull(uuid)?.toByteArray()?.base64EncodeString()
 
     @PostMapping("/onboard")
     fun onboardInvoice(
@@ -42,9 +45,9 @@ class InvoiceControllerV1(
     )
 
     @GetMapping("/address/from/{fromAddress}")
-    fun getByFromAddress(@PathVariable fromAddress: String): List<Invoice> = invoiceRepository.findAllByFromAddress(fromAddress)
+    fun getByFromAddress(@PathVariable fromAddress: String): List<ByteArray> = invoiceRepository.findAllByFromAddress(fromAddress).map { it.toByteArray() }
 
     @GetMapping("/address/to/{toAddress}")
-    fun getByToAddress(@PathVariable toAddress: String): List<Invoice> = invoiceRepository.findAllByToAddress(toAddress)
+    fun getByToAddress(@PathVariable toAddress: String): List<ByteArray> = invoiceRepository.findAllByToAddress(toAddress).map { it.toByteArray() }
 }
 
