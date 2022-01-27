@@ -34,17 +34,16 @@ class InvoiceService(
         val asset = request.invoice.toAsset()
         logger.info("Generating onboarding messages for invoice with uuid [${request.invoice.invoiceUuid.value}]")
         // TODO: Need to store the results from this in the db alongside the invoice to enable retries
-        val onboardingResponse = assetOnboardingService.generateOnboardingTransactions(asset = asset, walletDetails = request.walletDetails)
+        val assetOnboardingResponse = assetOnboardingService.generateOnboardingTransactions(asset = asset, walletDetails = request.walletDetails)
         logger.info("Storing successful payload in the database for invoice [${request.invoice.invoiceUuid.value}]")
         val upsertedInvoice = invoiceRepository.upsert(invoice = request.invoice, status = InvoiceProcessingStatus.PENDING_STAMP)
         return OnboardInvoiceResponse(
             invoice = upsertedInvoice,
-            writeScopeRequestAny = onboardingResponse.writeScopeRequest,
-            writeSessionRequestAny = onboardingResponse.writeSessionRequest,
-            writeRecordRequestAny = onboardingResponse.writeRecordRequest,
-            writeScopeRequest = onboardingResponse.writeScopeRequest.typedUnpack(),
-            writeSessionRequest = onboardingResponse.writeSessionRequest.typedUnpack(),
-            writeRecordRequest = onboardingResponse.writeRecordRequest.typedUnpack(),
+            markerDenom = assetOnboardingResponse.markerDenom,
+            markerAddress = assetOnboardingResponse.markerAddress,
+            writeScopeRequest = assetOnboardingResponse.onboardingResponse.writeScopeRequest,
+            writeSessionRequest = assetOnboardingResponse.onboardingResponse.writeSessionRequest,
+            writeRecordRequest = assetOnboardingResponse.onboardingResponse.writeRecordRequest,
         )
     }
 }
@@ -56,10 +55,9 @@ data class OnboardInvoiceRequest(
 
 data class OnboardInvoiceResponse(
     val invoice: Invoice,
-    val writeScopeRequestAny: Any,
-    val writeSessionRequestAny: Any,
-    val writeRecordRequestAny: Any,
-    val writeScopeRequest: MsgWriteScopeRequest,
-    val writeSessionRequest: MsgWriteSessionRequest,
-    val writeRecordRequest: MsgWriteRecordRequest,
+    val markerDenom: String,
+    val markerAddress: String,
+    val writeScopeRequest: Any,
+    val writeSessionRequest: Any,
+    val writeRecordRequest: Any,
 )
