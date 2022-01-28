@@ -48,7 +48,6 @@ class InvoiceService(
                 markerAddress = assetOnboardingResponse.markerAddress,
                 scopeId = MetadataAddress.forScope(
                     assetOnboardingResponse
-                        .onboardingResponse
                         .writeScopeRequest
                         .typedUnpack<MsgWriteScopeRequest>()
                         .scopeUuid
@@ -58,9 +57,9 @@ class InvoiceService(
                 invoiceDenom = upsertedInvoice.paymentDenom,
             ),
             scopeGenerationDetail = ScopeGenerationDetail(
-                writeScopeRequest = assetOnboardingResponse.onboardingResponse.writeScopeRequest,
-                writeSessionRequest = assetOnboardingResponse.onboardingResponse.writeSessionRequest,
-                writeRecordRequest = assetOnboardingResponse.onboardingResponse.writeRecordRequest,
+                writeScopeRequest = assetOnboardingResponse.writeScopeRequest,
+                writeSessionRequest = assetOnboardingResponse.writeSessionRequest,
+                writeRecordRequest = assetOnboardingResponse.writeRecordRequest,
             ),
         )
     }
