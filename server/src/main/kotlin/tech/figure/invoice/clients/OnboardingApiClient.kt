@@ -15,6 +15,7 @@ import tech.figure.invoice.config.web.AppHeaders
 import tech.figure.invoice.util.extension.checkNotNull
 import tech.figure.invoice.util.extension.deriveDefaultInstance
 import tech.figure.invoice.util.extension.mergeFromJsonProvenance
+import tech.figure.invoice.util.extension.typedUnpack
 
 @Headers("Content-Type: application/json")
 interface OnboardingApiClient {
@@ -39,18 +40,19 @@ data class OnboardingResponse(
 ) {
     private val txBody: TxBody by lazy { TxBody.newBuilder().mergeFromJsonProvenance(json).build() }
 
-    val writeScopeRequest: Any by lazy { txBody.decodeMessage<MsgWriteScopeRequest>() }
-    val writeSessionRequest: Any by lazy { txBody.decodeMessage<MsgWriteSessionRequest>() }
-    val writeRecordRequest: Any by lazy { txBody.decodeMessage<MsgWriteRecordRequest>() }
+    val writeScopeRequest: MsgWriteScopeRequest by lazy { txBody.decodeMessage() }
+    val writeSessionRequest: MsgWriteSessionRequest by lazy { txBody.decodeMessage() }
+    val writeRecordRequest: MsgWriteRecordRequest by lazy { txBody.decodeMessage() }
 
     override fun toString() = "Received:${System.lineSeparator()}tx body: $json${System.lineSeparator()}base64: $base64"
 
     /**
      * Dynamic unpacking from the source
      */
-    private inline fun <reified T: Message> TxBody.decodeMessage(): Any =
+    private inline fun <reified T: Message> TxBody.decodeMessage(): T =
         T::class.deriveDefaultInstance().let { Any.pack(it, "") }.typeUrl.let { targetType ->
             this.messagesList.singleOrNull { it.typeUrl == targetType }
                 .checkNotNull { "Expected response payload to contain an message of type [${T::class.qualifiedName}] but only contained types: ${txBody.messagesList.map { it.typeUrl }}" }
+                .typedUnpack()
         }
 }

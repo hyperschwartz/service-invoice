@@ -1,6 +1,5 @@
 package tech.figure.invoice.services
 
-import com.google.protobuf.Any
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -9,8 +8,6 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import tech.figure.invoice.clients.OnboardingApiClient
 import tech.figure.invoice.domain.wallet.WalletDetails
-import tech.figure.invoice.util.extension.toProtoAny
-import tech.figure.invoice.util.extension.typedUnpack
 import tech.figure.invoice.util.provenance.ProvenanceAddressUtil
 
 @Service
@@ -45,32 +42,37 @@ class AssetOnboardingService(private val onboardingApi: OnboardingApiClient) {
         return AssetOnboardingResponse(
             markerDenom = markerDenom,
             markerAddress = markerAddress,
-            writeScopeRequest = onboardingResponse.writeScopeRequest.typedUnpack<MsgWriteScopeRequest>().rePackWithAddressSigner(walletDetails.address),
-            writeSessionRequest = onboardingResponse.writeSessionRequest.typedUnpack<MsgWriteSessionRequest>().rePackWithAddressSigner(walletDetails.address),
-            writeRecordRequest = onboardingResponse.writeRecordRequest.typedUnpack<MsgWriteRecordRequest>().rePackWithAddressSigner(walletDetails.address),
+            writeScopeRequest = onboardingResponse.writeScopeRequest.signWallet(walletDetails.address),
+            writeSessionRequest = onboardingResponse.writeSessionRequest.signWallet(walletDetails.address),
+            writeRecordRequest = onboardingResponse.writeRecordRequest.signWallet(walletDetails.address),
         )
     }
 
-    private fun MsgWriteScopeRequest.rePackWithAddressSigner(walletAddress: String): Any = toBuilder().also { builder ->
-        builder.clearSigners()
-        builder.addSigners(walletAddress)
-    }.build().toProtoAny()
+    /**
+     * Each message is created to dictate that the marker address is the signing entity, but in order for the frontend
+     * flow to work, the signer must be the wallet.  This change removes the requirement for the marker to sign the
+     * contract and pay the fee, and instead allows the wallet to be the entity to make the payment.
+     *
+     * Each individual type must have its own override because protobuf creates unique objects with no related
+     * interfaces.
+     */
+    private fun MsgWriteScopeRequest.signWallet(
+        walletAddress: String
+    ): MsgWriteScopeRequest = toBuilder().clearSigners().addSigners(walletAddress).build()
 
-    private fun MsgWriteSessionRequest.rePackWithAddressSigner(walletAddress: String): Any = toBuilder().also { builder ->
-        builder.clearSigners()
-        builder.addSigners(walletAddress)
-    }.build().toProtoAny()
+    private fun MsgWriteSessionRequest.signWallet(
+        walletAddress: String
+    ): MsgWriteSessionRequest = toBuilder().clearSigners().addSigners(walletAddress).build()
 
-    private fun MsgWriteRecordRequest.rePackWithAddressSigner(walletAddress: String): Any = toBuilder().also { builder ->
-        builder.clearSigners()
-        builder.addSigners(walletAddress)
-    }.build().toProtoAny()
+    private fun MsgWriteRecordRequest.signWallet(
+        walletAddress: String
+    ): MsgWriteRecordRequest = toBuilder().clearSigners().addSigners(walletAddress).build()
 }
 
 data class AssetOnboardingResponse(
     val markerDenom: String,
     val markerAddress: String,
-    val writeScopeRequest: Any,
-    val writeSessionRequest: Any,
-    val writeRecordRequest: Any,
+    val writeScopeRequest: MsgWriteScopeRequest,
+    val writeSessionRequest: MsgWriteSessionRequest,
+    val writeRecordRequest: MsgWriteRecordRequest,
 )

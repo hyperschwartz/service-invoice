@@ -1,9 +1,6 @@
 package tech.figure.invoice.services
 
 import com.google.protobuf.Any
-import io.provenance.metadata.v1.MsgWriteRecordRequest
-import io.provenance.metadata.v1.MsgWriteScopeRequest
-import io.provenance.metadata.v1.MsgWriteSessionRequest
 import io.provenance.scope.util.MetadataAddress
 import io.provenance.scope.util.toUuid
 import tech.figure.invoice.InvoiceProtos.Invoice
@@ -13,9 +10,9 @@ import tech.figure.invoice.domain.wallet.WalletDetails
 import tech.figure.invoice.repository.InvoiceRepository
 import tech.figure.invoice.util.enums.InvoiceProcessingStatus
 import tech.figure.invoice.util.extension.toAsset
+import tech.figure.invoice.util.extension.toProtoAny
 import tech.figure.invoice.util.extension.toUuid
 import tech.figure.invoice.util.extension.totalAmount
-import tech.figure.invoice.util.extension.typedUnpack
 import tech.figure.invoice.util.validation.InvoiceValidator
 import java.math.BigDecimal
 
@@ -46,20 +43,16 @@ class InvoiceService(
             markerCreationDetail = MarkerCreationDetail(
                 markerDenom = assetOnboardingResponse.markerDenom,
                 markerAddress = assetOnboardingResponse.markerAddress,
-                scopeId = MetadataAddress.forScope(
-                    assetOnboardingResponse
-                        .writeScopeRequest
-                        .typedUnpack<MsgWriteScopeRequest>()
-                        .scopeUuid
-                        .toUuid()
-                ).toString(),
+                scopeId = MetadataAddress.forScope(assetOnboardingResponse.writeScopeRequest.scopeUuid.toUuid()).toString(),
                 invoiceTotal = upsertedInvoice.totalAmount(),
                 invoiceDenom = upsertedInvoice.paymentDenom,
             ),
             scopeGenerationDetail = ScopeGenerationDetail(
-                writeScopeRequest = assetOnboardingResponse.writeScopeRequest,
-                writeSessionRequest = assetOnboardingResponse.writeSessionRequest,
-                writeRecordRequest = assetOnboardingResponse.writeRecordRequest,
+                // Re-package the derived blockchain messages from the asset onboarding response to Any, which is what
+                // the frontend expects to receive and send to the blockchain
+                writeScopeRequest = assetOnboardingResponse.writeScopeRequest.toProtoAny(),
+                writeSessionRequest = assetOnboardingResponse.writeSessionRequest.toProtoAny(),
+                writeRecordRequest = assetOnboardingResponse.writeRecordRequest.toProtoAny(),
             ),
         )
     }
