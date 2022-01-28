@@ -57,4 +57,4 @@ ${AnsiColor.CYAN}
     #+#     #+#   #+#+#   #+#+#+#   #+#    #+#    #+#    #+#    #+# #+#
 ########### ###    ####     ###      ######## ########### ########  ##########
 
-                ${AnsiStyle.UNDERLINE}${AnsiColor.WHITE}${AnsiBackground.BLACK}  Figure Tech  ${AnsiStyle.NORMAL}
+                ${AnsiStyle.UNDERLINE}${AnsiColor.WHITE}${AnsiBackground.BLACK}  Provenance.io  ${AnsiStyle.NORMAL}

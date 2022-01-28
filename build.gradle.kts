@@ -5,7 +5,7 @@ plugins {
 }
 
 allprojects {
-    group = "tech.figure.invoice"
+    group = "io.provenance.invoice"
     version = artifactVersion()
 
     repositories {

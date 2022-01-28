@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package invoice;
 
-option java_package = "tech.figure.invoice";
+option java_package = "io.provenance.invoice";
 
 import "util_protos.proto";
 
