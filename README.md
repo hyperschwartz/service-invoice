@@ -6,11 +6,11 @@ Handles Invoice generation
 ### Local
 The application depends on a dedicated database.  To spin up the local database, just run from the root directory:
 ```shell
-./localnet-up.sh
+./localnet.sh up
 ```
 
 To check that the database is available, just run the following command and look for a container called
-local-development-postgres.
+postgres-local-invoice.
 ```shell
 docker ps
 ```

@@ -104,7 +104,8 @@ tasks.withType<Test> {
 }
 
 tasks.bootRun {
-    args("--spring.profiles.active=development")
+    // Use the provided SPRING_PROFILES_ACTIVE env for the bootRun task, otherwise default to a development environment
+    args("--spring.profiles.active=${System.getenv("SPRING_PROFILES_ACTIVE") ?: "development"}")
 }
 
 tasks.register<Test>("integrationTest") {

@@ -1,3 +1,0 @@
-PG_USER=postgres
-PGPASSWORD=password1
-PG_HOST=postgres

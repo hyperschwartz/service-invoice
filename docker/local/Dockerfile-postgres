@@ -1,0 +1,7 @@
+# A standard dockerfile wrapper around a postgres container to force the container to start up with a database structure
+# that the invoice application requires.
+FROM postgres:13
+# Copy our local init-db script into the entrypoint that runs when the container starts
+ADD ./init-db.sql /docker-entrypoint-initdb.d/
+# Standard PostgreSQL port expected for connections
+EXPOSE 5432

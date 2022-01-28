@@ -1,0 +1,16 @@
+version: '3.5'
+services:
+    invoice-postgres:
+        image: invoice-postgres:latest
+        container_name: postgres-local-invoice
+        # Connection defaults are defined in init-db.sql
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=password1
+        ports:
+            - "5432:5432"
+        volumes:
+            - invoice-testnet:/var/lib/postgresql/data
+
+volumes:
+    invoice-testnet:

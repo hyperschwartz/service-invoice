@@ -9,5 +9,6 @@ import org.springframework.validation.annotation.Validated
 @Validated
 data class FigureTechProperties(
     val onboardingApiPrefix: String,
-    val onboardingApiKey: String,
+    // When deployed internally, the apikey is not necessary
+    val onboardingApiKey: String?,
 )
