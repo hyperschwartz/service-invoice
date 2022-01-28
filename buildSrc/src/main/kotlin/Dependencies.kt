@@ -64,6 +64,7 @@ object Dependencies {
     // Spring
     object SpringBoot {
         val Starter = DependencySpec("org.springframework.boot:spring-boot-starter")
+        val StarterActuator = DependencySpec("org.springframework.boot:spring-boot-starter-actuator")
         val StarterAOP = DependencySpec("org.springframework.boot:spring-boot-starter-aop")
         val StarterJetty = DependencySpec("org.springframework.boot:spring-boot-starter-jetty")
         val StarterValidation = DependencySpec("org.springframework.boot:spring-boot-starter-validation")

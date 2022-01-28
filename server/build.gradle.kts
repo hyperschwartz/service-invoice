@@ -60,6 +60,7 @@ dependencies {
         Dependencies.Provenance.ScopeSdk,
         Dependencies.Provenance.ScopeUtil,
         Dependencies.SpringBoot.Starter,
+        Dependencies.SpringBoot.StarterActuator,
         Dependencies.SpringBoot.StarterAOP,
         Dependencies.SpringBoot.StarterJetty,
         Dependencies.SpringBoot.StarterValidation,
