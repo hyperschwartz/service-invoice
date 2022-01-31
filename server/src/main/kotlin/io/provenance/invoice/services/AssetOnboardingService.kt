@@ -29,19 +29,21 @@ class AssetOnboardingService(
             accountAddress = walletDetails.address,
         )
         logger.info("Generating transactions to board asset [${asset.id.value}]")
-        // Tell onboarding api to create a new scope, session, and record that are owned by the prospective new marker,
-        // and use the wallet as the public key for object store reads.
+        // Tell onboarding api to create a new scope, session, and record that are owned by the requesting wallet, and
+        // use the oracle's public key in the call.  Sending the wallet's address ensures that the wallet owns the
+        // newly-created scope, and sending the oracle's public key allows the oracle (an account made specifically for
+        // this application) can query object store for the asset, allowing us to validate the invoice
         val onboardingResponse = onboardingApi.generateOnboarding(
-            address = markerAddress,
+            address = walletDetails.address,
             publicKey = provenanceProperties.oraclePublicKey,
             asset = asset,
         )
         return AssetOnboardingResponse(
             markerDenom = markerDenom,
             markerAddress = markerAddress,
-            writeScopeRequest = onboardingResponse.writeScopeRequest.signWallet(walletDetails.address),
-            writeSessionRequest = onboardingResponse.writeSessionRequest.signWallet(walletDetails.address),
-            writeRecordRequest = onboardingResponse.writeRecordRequest.signWallet(walletDetails.address),
+            writeScopeRequest = onboardingResponse.writeScopeRequest.addMarkerAsValueOwner(markerAddress),
+            writeSessionRequest = onboardingResponse.writeSessionRequest,
+            writeRecordRequest = onboardingResponse.writeRecordRequest,
         )
     }
 
@@ -53,17 +55,11 @@ class AssetOnboardingService(
      * Each individual type must have its own override because protobuf creates unique objects with no related
      * interfaces.
      */
-    private fun MsgWriteScopeRequest.signWallet(
-        walletAddress: String
-    ): MsgWriteScopeRequest = toBuilder().clearSigners().addSigners(walletAddress).build()
-
-    private fun MsgWriteSessionRequest.signWallet(
-        walletAddress: String
-    ): MsgWriteSessionRequest = toBuilder().clearSigners().addSigners(walletAddress).build()
-
-    private fun MsgWriteRecordRequest.signWallet(
-        walletAddress: String
-    ): MsgWriteRecordRequest = toBuilder().clearSigners().addSigners(walletAddress).build()
+    private fun MsgWriteScopeRequest.addMarkerAsValueOwner(
+        markerAddress: String
+    ): MsgWriteScopeRequest = toBuilder().also { writeScopeBuilder ->
+        writeScopeBuilder.scopeBuilder.valueOwnerAddress = markerAddress
+    }.build()
 }
 
 data class AssetOnboardingResponse(
