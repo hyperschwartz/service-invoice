@@ -35,6 +35,12 @@ jobs:
                   java-version: 11
                   server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
 
+            - name: Install Protoc
+              uses: arduino/setup-protoc@v1
+              with:
+                version: '3.19.1'
+                repo-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Build with Gradle
               run: ./gradlew clean build --refresh-dependencies -PartifactVersion=$VERSION
 
