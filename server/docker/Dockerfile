@@ -4,7 +4,6 @@ LABEL org.opencontainers.image.source=https://github.com/hyperschwartz/service-i
 
 ADD ./build/libs/*.jar /service.jar
 ADD ./docker/docker-entrypoint.sh /docker-entrypoint.sh
-ADD ./docker/libyjpagent.so /libyjpagent.so
 
 EXPOSE 13459/tcp
 

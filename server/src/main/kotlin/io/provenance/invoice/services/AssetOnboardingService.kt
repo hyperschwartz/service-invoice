@@ -41,25 +41,11 @@ class AssetOnboardingService(
         return AssetOnboardingResponse(
             markerDenom = markerDenom,
             markerAddress = markerAddress,
-            writeScopeRequest = onboardingResponse.writeScopeRequest.addMarkerAsValueOwner(markerAddress),
+            writeScopeRequest = onboardingResponse.writeScopeRequest,
             writeSessionRequest = onboardingResponse.writeSessionRequest,
             writeRecordRequest = onboardingResponse.writeRecordRequest,
         )
     }
-
-    /**
-     * Each message is created to dictate that the marker address is the signing entity, but in order for the frontend
-     * flow to work, the signer must be the wallet.  This change removes the requirement for the marker to sign the
-     * contract and pay the fee, and instead allows the wallet to be the entity to make the payment.
-     *
-     * Each individual type must have its own override because protobuf creates unique objects with no related
-     * interfaces.
-     */
-    private fun MsgWriteScopeRequest.addMarkerAsValueOwner(
-        markerAddress: String
-    ): MsgWriteScopeRequest = toBuilder().also { writeScopeBuilder ->
-        writeScopeBuilder.scopeBuilder.valueOwnerAddress = markerAddress
-    }.build()
 }
 
 data class AssetOnboardingResponse(
