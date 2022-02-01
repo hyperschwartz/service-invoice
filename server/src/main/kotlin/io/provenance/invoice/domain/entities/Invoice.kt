@@ -23,8 +23,6 @@ object InvoiceTable : UUIDTable(columnName = "invoice_uuid", name = "invoice") {
     val fromAddress = text(name = "from_address")
     val toAddress = text(name = "to_address")
     val status = text(name = "status")
-    val markerDenom = text(name = "marker_denom")
-    val markerAddress = text(name = "marker_address")
     val writeScopeRequest = proto(name = "write_scope_request", MsgWriteScopeRequest.getDefaultInstance())
     val writeSessionRequest = proto(name = "write_session_request", MsgWriteSessionRequest.getDefaultInstance())
     val writeRecordRequest = proto(name = "write_record_request", MsgWriteRecordRequest.getDefaultInstance())
@@ -36,8 +34,6 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
     fun insert(
         invoice: Invoice,
         status: InvoiceProcessingStatus,
-        markerDenom: String,
-        markerAddress: String,
         writeScopeRequest: MsgWriteScopeRequest,
         writeSessionRequest: MsgWriteSessionRequest,
         writeRecordRequest: MsgWriteRecordRequest,
@@ -50,8 +46,6 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
                 this.fromAddress = invoice.fromAddress
                 this.toAddress = invoice.toAddress
                 this.status = status.name
-                this.markerDenom = markerDenom
-                this.markerAddress = markerAddress
                 this.writeScopeRequest = writeScopeRequest
                 this.writeSessionRequest = writeSessionRequest
                 this.writeRecordRequest = writeRecordRequest
@@ -62,8 +56,6 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
     fun update(
         invoiceParam: InvoiceUpdateQueryParam,
         status: InvoiceProcessingStatus? = null,
-        markerDenom: String? = null,
-        markerAddress: String? = null,
         writeScopeRequest: MsgWriteScopeRequest? = null,
         writeSessionRequest: MsgWriteSessionRequest? = null,
         writeRecordRequest: MsgWriteRecordRequest? = null,
@@ -76,8 +68,6 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
         }
         this.updatedTime = updateTime
         status?.name?.also { this.status = it }
-        markerDenom?.also { this.markerDenom = it }
-        markerAddress?.also { this.markerAddress = it }
         writeScopeRequest?.also { this.writeScopeRequest = it }
         writeSessionRequest?.also { this.writeSessionRequest = it }
         writeRecordRequest?.also { this.writeRecordRequest = it }
@@ -99,8 +89,6 @@ class InvoiceRecord(uuid: EntityID<UUID>) : UUIDEntity(uuid) {
     var fromAddress: String by InvoiceTable.fromAddress
     var toAddress: String by InvoiceTable.toAddress
     var status: String by InvoiceTable.status
-    var markerDenom: String by InvoiceTable.markerDenom
-    var markerAddress: String by InvoiceTable.markerAddress
     var writeScopeRequest: MsgWriteScopeRequest by InvoiceTable.writeScopeRequest
     var writeSessionRequest: MsgWriteSessionRequest by InvoiceTable.writeSessionRequest
     var writeRecordRequest: MsgWriteRecordRequest by InvoiceTable.writeRecordRequest

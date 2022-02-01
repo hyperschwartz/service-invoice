@@ -7,8 +7,8 @@ import io.provenance.invoice.services.InvoiceService
 import io.provenance.invoice.services.OnboardInvoiceRequest
 import io.provenance.invoice.testhelpers.IntTestBase
 import io.provenance.invoice.util.extension.toProtoAny
+import io.provenance.invoice.util.extension.toUuid
 import io.provenance.invoice.util.extension.typedUnpack
-import io.provenance.invoice.util.provenance.ProvenanceUtil
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -39,33 +39,25 @@ class InvoiceServiceTest : IntTestBase() {
             message = "Expected the output invoice to be identical to the input invoice",
         )
         assertEquals(
-            expected = "invoice-${invoice.invoiceUuid.value}",
-            actual = response.markerCreationDetail.markerDenom,
-            message = "The marker denomination should equate to the invoice prefix plus the invoice's uuid",
-        )
-        assertEquals(
-            expected = ProvenanceUtil.generateMarkerAddressForDenomFromSource(
-                denom = response.markerCreationDetail.markerDenom,
-                accountAddress = TestConstants.VALID_ADDRESS,
-            ),
-            actual = response.markerCreationDetail.markerAddress,
-            message = "The marker address should be derived from the source caller address and the derived denomination",
+            expected = invoice.invoiceUuid.toUuid(),
+            actual = response.payablesContractExecutionDetail.payableUuid,
+            message = "The invoice's uuid should be sent in the response as the payable uuid",
         )
         assertEquals(
             expected = response.scopeGenerationDetail.writeScopeRequest.typedUnpack<MsgWriteScopeRequest>().scopeUuid.let { scopeUuid ->
                 MetadataAddress.forScope(scopeUuid.toUuid()).toString()
             },
-            actual = response.markerCreationDetail.scopeId,
+            actual = response.payablesContractExecutionDetail.scopeId,
             message = "Expected the scope id to be derived from the write scope request",
         )
         assertEquals(
             expected = "nhash",
-            actual = response.markerCreationDetail.invoiceDenom,
+            actual = response.payablesContractExecutionDetail.invoiceDenom,
             message = "Expected the invoice denomination to be in nhash. All invoices are created as nhash for now",
         )
         assertEquals(
             expected = "10".toBigDecimal(),
-            actual = response.markerCreationDetail.invoiceTotal,
+            actual = response.payablesContractExecutionDetail.invoiceTotal,
             message = "Expected the invoice total to be the default value from the MockProtoUtil",
         )
         assertEquals(

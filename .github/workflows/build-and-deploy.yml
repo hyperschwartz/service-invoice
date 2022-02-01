@@ -38,7 +38,7 @@ jobs:
             - name: Install Protoc
               uses: arduino/setup-protoc@v1
               with:
-                version: '3.19.1'
+                version: '3.19.1' # This should remain in sync with buildSrc/Dependencies.Versions.Protobuf
                 repo-token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Build with Gradle

@@ -14,6 +14,7 @@ import io.provenance.invoice.util.extension.toProtoAny
 import io.provenance.invoice.util.extension.toUuid
 import io.provenance.invoice.util.validation.InvoiceValidator
 import java.math.BigDecimal
+import java.util.UUID
 
 @Service
 class InvoiceService(
@@ -39,17 +40,14 @@ class InvoiceService(
         val upsertedInvoice = invoiceRepository.insert(
             invoice = request.invoice,
             status = InvoiceProcessingStatus.PENDING_STAMP,
-            markerDenom = assetOnboardingResponse.markerDenom,
-            markerAddress = assetOnboardingResponse.markerAddress,
             writeScopeRequest = assetOnboardingResponse.writeScopeRequest,
             writeSessionRequest = assetOnboardingResponse.writeSessionRequest,
             writeRecordRequest = assetOnboardingResponse.writeRecordRequest,
         )
         return OnboardInvoiceResponse(
             invoice = upsertedInvoice.invoice,
-            markerCreationDetail = MarkerCreationDetail(
-                markerDenom = assetOnboardingResponse.markerDenom,
-                markerAddress = assetOnboardingResponse.markerAddress,
+            payablesContractExecutionDetail = PayablesContractExecutionDetail(
+                payableUuid = upsertedInvoice.uuid,
                 scopeId = MetadataAddress.forScope(assetOnboardingResponse.writeScopeRequest.scopeUuid.toUuid()).toString(),
                 invoiceTotal = upsertedInvoice.totalOwed,
                 invoiceDenom = upsertedInvoice.invoice.paymentDenom,
@@ -72,13 +70,12 @@ data class OnboardInvoiceRequest(
 
 data class OnboardInvoiceResponse(
     val invoice: Invoice,
-    val markerCreationDetail: MarkerCreationDetail,
+    val payablesContractExecutionDetail: PayablesContractExecutionDetail,
     val scopeGenerationDetail: ScopeGenerationDetail,
 )
 
-data class MarkerCreationDetail(
-    val markerDenom: String,
-    val markerAddress: String,
+data class PayablesContractExecutionDetail(
+    val payableUuid: UUID,
     val scopeId: String,
     val invoiceDenom: String,
     val invoiceTotal: BigDecimal,

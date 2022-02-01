@@ -89,8 +89,6 @@ class InvoiceRepositoryIntTest : IntTestBase() {
     private fun insertInvoice(invoice: Invoice): InvoiceDto = invoiceRepository.insert(
         invoice = invoice,
         status = InvoiceProcessingStatus.PENDING_STAMP,
-        markerDenom = "fake-denom",
-        markerAddress = "fake-address",
         writeScopeRequest = MsgWriteScopeRequest.getDefaultInstance(),
         writeSessionRequest = MsgWriteSessionRequest.getDefaultInstance(),
         writeRecordRequest = MsgWriteRecordRequest.getDefaultInstance(),

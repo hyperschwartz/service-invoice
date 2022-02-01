@@ -9,7 +9,6 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import io.provenance.invoice.config.provenance.ProvenanceProperties
 import io.provenance.invoice.domain.wallet.WalletDetails
-import io.provenance.invoice.util.provenance.ProvenanceUtil
 
 @Service
 class AssetOnboardingService(
@@ -22,35 +21,26 @@ class AssetOnboardingService(
         asset: Asset,
         walletDetails: WalletDetails,
     ): AssetOnboardingResponse {
-        logger.info("Generating marker details from request for asset [${asset.id.value}]")
-        val markerDenom = ProvenanceUtil.getInvoiceDenominationForAsset(asset)
-        val markerAddress = ProvenanceUtil.generateMarkerAddressForDenomFromSource(
-            denom = markerDenom,
-            accountAddress = walletDetails.address,
-        )
         logger.info("Generating transactions to board asset [${asset.id.value}]")
         // Tell onboarding api to create a new scope, session, and record that are owned by the requesting wallet, and
         // use the oracle's public key in the call.  Sending the wallet's address ensures that the wallet owns the
         // newly-created scope, and sending the oracle's public key allows the oracle (an account made specifically for
         // this application) can query object store for the asset, allowing us to validate the invoice
-        val onboardingResponse = onboardingApi.generateOnboarding(
+        return onboardingApi.generateOnboarding(
             address = walletDetails.address,
             publicKey = provenanceProperties.oraclePublicKey,
             asset = asset,
-        )
-        return AssetOnboardingResponse(
-            markerDenom = markerDenom,
-            markerAddress = markerAddress,
-            writeScopeRequest = onboardingResponse.writeScopeRequest,
-            writeSessionRequest = onboardingResponse.writeSessionRequest,
-            writeRecordRequest = onboardingResponse.writeRecordRequest,
-        )
+        ).let { onboardingResponse ->
+            AssetOnboardingResponse(
+                writeScopeRequest = onboardingResponse.writeScopeRequest,
+                writeSessionRequest = onboardingResponse.writeSessionRequest,
+                writeRecordRequest = onboardingResponse.writeRecordRequest,
+            )
+        }
     }
 }
 
 data class AssetOnboardingResponse(
-    val markerDenom: String,
-    val markerAddress: String,
     val writeScopeRequest: MsgWriteScopeRequest,
     val writeSessionRequest: MsgWriteSessionRequest,
     val writeRecordRequest: MsgWriteRecordRequest,

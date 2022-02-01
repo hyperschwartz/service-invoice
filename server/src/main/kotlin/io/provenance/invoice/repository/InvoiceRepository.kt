@@ -23,8 +23,6 @@ class InvoiceRepository {
     fun insert(
         invoice: Invoice,
         status: InvoiceProcessingStatus,
-        markerDenom: String,
-        markerAddress: String,
         writeScopeRequest: MsgWriteScopeRequest,
         writeSessionRequest: MsgWriteSessionRequest,
         writeRecordRequest: MsgWriteRecordRequest,
@@ -32,8 +30,6 @@ class InvoiceRepository {
         InvoiceRecord.insert(
             invoice = invoice,
             status = status,
-            markerDenom = markerDenom,
-            markerAddress = markerAddress,
             writeScopeRequest = writeScopeRequest,
             writeSessionRequest = writeSessionRequest,
             writeRecordRequest = writeRecordRequest,
@@ -44,8 +40,6 @@ class InvoiceRepository {
         invoice: Invoice,
         status: InvoiceProcessingStatus? = null,
         processingStatus: InvoiceProcessingStatus? = null,
-        markerDenom: String? = null,
-        markerAddress: String? = null,
         writeScopeRequest: MsgWriteScopeRequest? = null,
         writeSessionRequest: MsgWriteSessionRequest? = null,
         writeRecordRequest: MsgWriteRecordRequest? = null,
@@ -53,8 +47,6 @@ class InvoiceRepository {
         InvoiceRecord.update(
             invoiceParam = InvoiceUpdateQueryParam.InvoiceProto(invoice),
             status = status,
-            markerDenom = markerDenom,
-            markerAddress = markerAddress,
             writeScopeRequest = writeScopeRequest,
             writeSessionRequest = writeSessionRequest,
             writeRecordRequest = writeRecordRequest,
@@ -65,8 +57,6 @@ class InvoiceRepository {
         uuid: UUID,
         status: InvoiceProcessingStatus? = null,
         processingStatus: InvoiceProcessingStatus? = null,
-        markerDenom: String? = null,
-        markerAddress: String? = null,
         writeScopeRequest: MsgWriteScopeRequest? = null,
         writeSessionRequest: MsgWriteSessionRequest? = null,
         writeRecordRequest: MsgWriteRecordRequest? = null,
@@ -74,8 +64,6 @@ class InvoiceRepository {
         InvoiceRecord.update(
             invoiceParam = InvoiceUpdateQueryParam.InvoiceUuid(uuid),
             status = status,
-            markerDenom = markerDenom,
-            markerAddress = markerAddress,
             writeScopeRequest = writeScopeRequest,
             writeSessionRequest = writeSessionRequest,
             writeRecordRequest = writeRecordRequest,
