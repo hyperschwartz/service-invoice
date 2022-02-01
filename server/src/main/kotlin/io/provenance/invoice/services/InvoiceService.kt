@@ -1,7 +1,6 @@
 package io.provenance.invoice.services
 
 import com.google.protobuf.Any
-import io.provenance.invoice.InvoiceProtos
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.domain.wallet.WalletDetails
 import io.provenance.scope.util.MetadataAddress
@@ -13,7 +12,6 @@ import io.provenance.invoice.util.enums.InvoiceProcessingStatus
 import io.provenance.invoice.util.extension.toAsset
 import io.provenance.invoice.util.extension.toProtoAny
 import io.provenance.invoice.util.extension.toUuid
-import io.provenance.invoice.util.extension.totalAmount
 import io.provenance.invoice.util.validation.InvoiceValidator
 import java.math.BigDecimal
 
@@ -38,15 +36,23 @@ class InvoiceService(
         // TODO: Need to store the results from this in the db alongside the invoice to enable retries
         val assetOnboardingResponse = assetOnboardingService.generateInvoiceBoardingTx(asset = asset, walletDetails = request.walletDetails)
         logger.info("Storing successful payload in the database for invoice [${request.invoice.invoiceUuid.value}]")
-        val upsertedInvoice = invoiceRepository.upsert(invoice = request.invoice, status = InvoiceProcessingStatus.PENDING_STAMP)
+        val upsertedInvoice = invoiceRepository.insert(
+            invoice = request.invoice,
+            status = InvoiceProcessingStatus.PENDING_STAMP,
+            markerDenom = assetOnboardingResponse.markerDenom,
+            markerAddress = assetOnboardingResponse.markerAddress,
+            writeScopeRequest = assetOnboardingResponse.writeScopeRequest,
+            writeSessionRequest = assetOnboardingResponse.writeSessionRequest,
+            writeRecordRequest = assetOnboardingResponse.writeRecordRequest,
+        )
         return OnboardInvoiceResponse(
-            invoice = upsertedInvoice,
+            invoice = upsertedInvoice.invoice,
             markerCreationDetail = MarkerCreationDetail(
                 markerDenom = assetOnboardingResponse.markerDenom,
                 markerAddress = assetOnboardingResponse.markerAddress,
                 scopeId = MetadataAddress.forScope(assetOnboardingResponse.writeScopeRequest.scopeUuid.toUuid()).toString(),
-                invoiceTotal = upsertedInvoice.totalAmount(),
-                invoiceDenom = upsertedInvoice.paymentDenom,
+                invoiceTotal = upsertedInvoice.totalOwed,
+                invoiceDenom = upsertedInvoice.invoice.paymentDenom,
             ),
             scopeGenerationDetail = ScopeGenerationDetail(
                 // Re-package the derived blockchain messages from the asset onboarding response to Any, which is what

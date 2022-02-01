@@ -1,12 +1,17 @@
 package io.provenance.invoice.test.repository
 
 import helper.MockProtoUtil
+import io.provenance.invoice.InvoiceProtos.Invoice
+import io.provenance.invoice.domain.dto.InvoiceDto
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.testhelpers.IntTestBase
 import io.provenance.invoice.util.enums.InvoiceProcessingStatus
 import io.provenance.invoice.util.extension.toUuid
+import io.provenance.metadata.v1.MsgWriteRecordRequest
+import io.provenance.metadata.v1.MsgWriteScopeRequest
+import io.provenance.metadata.v1.MsgWriteSessionRequest
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -16,12 +21,12 @@ class InvoiceRepositoryIntTest : IntTestBase() {
     @Autowired lateinit var invoiceRepository: InvoiceRepository
 
     @Test
-    fun testInvoicePersistAndReload() {
+    fun testInvoiceInsertAndReload() {
         val invoice = MockProtoUtil.getMockInvoice()
-        val upsertedInvoice = invoiceRepository.upsert(invoice, InvoiceProcessingStatus.PENDING_STAMP)
+        val insertedInvoice = insertInvoice(invoice)
         assertEquals(
             expected = invoice,
-            actual = upsertedInvoice,
+            actual = insertedInvoice.invoice,
             message = "The responding value from an upsert should be the unmodified input",
         )
         val foundInvoice = invoiceRepository.findByUuidOrNull(invoice.invoiceUuid.toUuid())
@@ -49,8 +54,8 @@ class InvoiceRepositoryIntTest : IntTestBase() {
             actual = secondInvoice.invoiceUuid.value,
             message = "Sanity check: Both generated invoices have different unique identifiers",
         )
-        invoiceRepository.upsert(firstInvoice, InvoiceProcessingStatus.PENDING_STAMP)
-        invoiceRepository.upsert(secondInvoice, InvoiceProcessingStatus.PENDING_STAMP)
+        insertInvoice(firstInvoice)
+        insertInvoice(secondInvoice)
         val foundBySender = invoiceRepository.findAllByFromAddress(fromAddress).map { it.invoiceUuid.toUuid() }
         assertEquals(
             expected = 2,
@@ -80,4 +85,14 @@ class InvoiceRepositoryIntTest : IntTestBase() {
             message = "The second invoice should be present in the response list for the receiver",
         )
     }
+
+    private fun insertInvoice(invoice: Invoice): InvoiceDto = invoiceRepository.insert(
+        invoice = invoice,
+        status = InvoiceProcessingStatus.PENDING_STAMP,
+        markerDenom = "fake-denom",
+        markerAddress = "fake-address",
+        writeScopeRequest = MsgWriteScopeRequest.getDefaultInstance(),
+        writeSessionRequest = MsgWriteSessionRequest.getDefaultInstance(),
+        writeRecordRequest = MsgWriteRecordRequest.getDefaultInstance(),
+    )
 }
