@@ -6,7 +6,6 @@ import io.provenance.invoice.config.web.AppRoutes
 import io.provenance.invoice.domain.wallet.WalletDetails
 import io.provenance.scope.objectstore.util.base64EncodeString
 import mu.KLogging
-import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -22,7 +21,6 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("${AppRoutes.V1}/invoices", produces = ["application/json"])
-@CrossOrigin(origins = ["http://localhost:3000"])
 class InvoiceControllerV1(
     private val invoiceRepository: InvoiceRepository,
     private val invoiceService: InvoiceService,
