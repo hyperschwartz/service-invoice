@@ -31,6 +31,7 @@ object Versions {
     // This version is pinned because ProvenanceClient implementation does not bring it along, and matching it allows access to query protos
     const val ProvenanceProto = "1.7.0-0.0.2"
     const val ProvenanceScope = "0.4.4"
+    const val Scarlet = "0.1.11"
     const val SpringBoot = "2.5.6"
     const val SpringDependencyManagementPlugin = "1.0.11.RELEASE"
     const val SpringMockk = "3.0.1"
@@ -63,12 +64,18 @@ object Dependencies {
 
     // Spring
     object SpringBoot {
+        val AutoConfigure = DependencySpec("org.springframework.boot:spring-boot-autoconfigure")
         val Starter = DependencySpec("org.springframework.boot:spring-boot-starter")
         val StarterActuator = DependencySpec("org.springframework.boot:spring-boot-starter-actuator")
         val StarterAOP = DependencySpec("org.springframework.boot:spring-boot-starter-aop")
+        val StarterDataRedis = DependencySpec("org.springframework.boot:spring-boot-starter-data-redis")
         val StarterJetty = DependencySpec("org.springframework.boot:spring-boot-starter-jetty")
         val StarterValidation = DependencySpec("org.springframework.boot:spring-boot-starter-validation")
         val StarterWeb = DependencySpec("org.springframework.boot:spring-boot-starter-web")
+    }
+
+    object SpringIntegration {
+        val Redis = DependencySpec("org.springframework.integration:spring-integration-redis")
     }
 
     // Jackson
@@ -120,6 +127,13 @@ object Dependencies {
     // JavaX
     object JavaX {
         val Annotation = DependencySpec("javax.annotation:javax.annotation-api", Versions.JavaX)
+    }
+
+    object Scarlet {
+        val MessageAdapterMoshi = DependencySpec("com.tinder.scarlet:message-adapter-moshi", Versions.Scarlet)
+        val Scarlet = DependencySpec("com.tinder.scarlet:scarlet", Versions.Scarlet)
+        val StreamAdapterRxJava = DependencySpec("com.tinder.scarlet:stream-adapter-rxjava2", Versions.Scarlet)
+        val WebSocketOkHttp = DependencySpec("com.tinder.scarlet:websocket-okhttp", Versions.Scarlet)
     }
 }
 
