@@ -62,6 +62,11 @@ class EventStreamConsumer(
     }
 
     private fun handleEvent(event: StreamEvent) {
-        logger.info("We did it! We saw an event! Hash: ${event.txHash}, Type: ${event.eventType}, Attribute Count: ${event.attributes.size}, Height: ${event.height}")
+        event.attributes.singleOrNull { it.key == "PAYABLE_REGISTERED" }?.also { attribute ->
+            logger.info("Found a live one: ${attribute.value}")
+        } ?: run {
+            logger.info("Not related")
+        }
+        //logger.info("We did it! We saw an event! Hash: ${event.txHash}, Type: ${event.eventType}, Attribute Count: ${event.attributes.size}, Height: ${event.height}")
     }
 }
