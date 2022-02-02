@@ -20,6 +20,11 @@ class InvoiceRepository {
     fun findByUuid(uuid: UUID): Invoice = findByUuidOrNull(uuid)
         ?: throw ResourceNotFoundException("Failed to find invoice by uuid [$uuid]")
 
+    fun findDtoByUuidOrNull(uuid: UUID): InvoiceDto? = transaction { InvoiceRecord.findById(uuid)?.toDto() }
+
+    fun findDtoByUuid(uuid: UUID): InvoiceDto = findDtoByUuidOrNull(uuid)
+        ?: throw ResourceNotFoundException("Failed to find invoice dto by uuid [$uuid]")
+
     fun insert(
         invoice: Invoice,
         status: InvoiceProcessingStatus,

@@ -8,12 +8,12 @@ import io.provenance.invoice.services.OnboardInvoiceRequest
 import io.provenance.invoice.testhelpers.IntTestBase
 import io.provenance.invoice.util.extension.toProtoAny
 import io.provenance.invoice.util.extension.toUuid
+import io.provenance.invoice.util.extension.parseUuid
 import io.provenance.invoice.util.extension.typedUnpack
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
 import io.provenance.scope.util.MetadataAddress
-import io.provenance.scope.util.toUuid
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import kotlin.test.assertEquals
@@ -45,7 +45,7 @@ class InvoiceServiceTest : IntTestBase() {
         )
         assertEquals(
             expected = response.scopeGenerationDetail.writeScopeRequest.typedUnpack<MsgWriteScopeRequest>().scopeUuid.let { scopeUuid ->
-                MetadataAddress.forScope(scopeUuid.toUuid()).toString()
+                MetadataAddress.forScope(scopeUuid.parseUuid()).toString()
             },
             actual = response.payablesContractExecutionDetail.scopeId,
             message = "Expected the scope id to be derived from the write scope request",

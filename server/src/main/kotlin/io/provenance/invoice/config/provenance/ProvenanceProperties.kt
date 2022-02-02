@@ -12,4 +12,7 @@ data class ProvenanceProperties(
     val chainId: String,
     val channelUri: URI,
     val oraclePublicKey: String,
+    val oraclePrivateKey: String,
+    val objectStoreUri: URI,
+    val objectStoreTimeoutMs: Long,
 )

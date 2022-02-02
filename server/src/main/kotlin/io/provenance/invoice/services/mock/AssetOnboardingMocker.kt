@@ -9,6 +9,7 @@ import io.provenance.invoice.clients.OnboardingResponse
 import io.provenance.invoice.util.extension.toJsonProvenance
 import io.provenance.invoice.util.extension.toProtoAny
 import io.provenance.invoice.util.extension.toUuid
+import io.provenance.invoice.util.extension.parseUuid
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -28,7 +29,6 @@ import io.provenance.scope.encryption.ecies.ProvenanceKeyGenerator
 import io.provenance.scope.objectstore.client.SIGNATURE_PUBLIC_KEY_FIELD_NAME
 import io.provenance.scope.util.MetadataAddress
 import io.provenance.scope.util.toByteString
-import io.provenance.scope.util.toUuid
 import java.io.ByteArrayInputStream
 import java.security.PublicKey
 import java.util.Base64
@@ -38,8 +38,8 @@ import java.util.UUID
  * Code is a hack to somewhat replicate the responses that service-asset-onboarding returns, without using object store.
  */
 object AssetOnboardingMocker {
-    private val SCOPE_SPEC_UUID = "551b5eca-921d-4ba7-aded-3966b224f44b".toUuid()
-    private val CONTRACT_SPEC_UUID = "f97ecc5d-c580-478d-be02-6c1b0c32235f".toUuid()
+    private val SCOPE_SPEC_UUID = "551b5eca-921d-4ba7-aded-3966b224f44b".parseUuid()
+    private val CONTRACT_SPEC_UUID = "f97ecc5d-c580-478d-be02-6c1b0c32235f".parseUuid()
     private const val RECORD_SPEC_NAME = "Asset"
     private val ASSET_SPEC_INPUT = RecordInputSpec(
         name = "AssetHash",
