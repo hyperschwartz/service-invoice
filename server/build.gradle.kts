@@ -59,12 +59,19 @@ dependencies {
         Dependencies.Provenance.ProvenanceProto,
         Dependencies.Provenance.ScopeSdk,
         Dependencies.Provenance.ScopeUtil,
+        Dependencies.Scarlet.MessageAdapterMoshi,
+        Dependencies.Scarlet.Scarlet,
+        Dependencies.Scarlet.StreamAdapterRxJava,
+        Dependencies.Scarlet.WebSocketOkHttp,
+        Dependencies.SpringBoot.AutoConfigure,
         Dependencies.SpringBoot.Starter,
         Dependencies.SpringBoot.StarterActuator,
         Dependencies.SpringBoot.StarterAOP,
+        Dependencies.SpringBoot.StarterDataRedis,
         Dependencies.SpringBoot.StarterJetty,
         Dependencies.SpringBoot.StarterValidation,
         Dependencies.SpringBoot.StarterWeb,
+        Dependencies.SpringIntegration.Redis,
     ).forEach { it.implementation(this) }
 
     // Spring Config
