@@ -2,7 +2,6 @@ package io.provenance.invoice.services
 
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
-import io.provenance.invoice.AssetProtos
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.config.provenance.ObjectStore
 import io.provenance.invoice.repository.InvoiceRepository
@@ -52,10 +51,12 @@ class EventHandlerService(
             hash = assetHash,
             publicKey = objectStore.oracleCredentials.public,
         )
-        Futures.addCallback(getFuture, object: FutureCallback<DIMEInputStream> {
+        Futures.addCallback(getFuture, object : FutureCallback<DIMEInputStream> {
             override fun onSuccess(result: DIMEInputStream?) {
-                result.checkNotNull { "Null DIMEInputStream received from object store query for invoice [$invoiceUuid]" }
-                    .getDecryptedPayload(objectStore.keyRef).use { signatureStream ->
+                result
+                    .checkNotNull { "Null DIMEInputStream received from object store query for invoice [$invoiceUuid]" }
+                    .getDecryptedPayload(objectStore.keyRef)
+                    .use { signatureStream ->
                         val messageBytes = signatureStream.readAllBytes()
                         val targetInvoice = Asset.parseFrom(messageBytes).unpackInvoice()
                         InvoiceValidator.validateInvoice(targetInvoice)
@@ -63,7 +64,7 @@ class EventHandlerService(
                     }
             }
             override fun onFailure(t: Throwable) {
-                logger.error("Failed to receive invoice [$invoiceUuid] DIME stream from object store")
+                logger.error("Failed to receive invoice [$invoiceUuid] DIME stream from object store", t)
             }
         }, Executors.newSingleThreadExecutor())
     }

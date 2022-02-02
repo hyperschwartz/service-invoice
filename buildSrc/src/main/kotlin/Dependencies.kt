@@ -30,7 +30,7 @@ object Versions {
     const val ProvenanceHdWallet = "0.1.9"
     // This version is pinned because ProvenanceClient implementation does not bring it along, and matching it allows access to query protos
     const val ProvenanceProto = "1.7.0-0.0.2"
-    const val ProvenanceScope = "0.4.4"
+    const val ProvenanceScope = "0.4.6"
     const val Scarlet = "0.1.11"
     const val SpringBoot = "2.5.6"
     const val SpringDependencyManagementPlugin = "1.0.11.RELEASE"

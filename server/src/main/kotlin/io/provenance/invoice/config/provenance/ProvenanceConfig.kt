@@ -37,5 +37,5 @@ data class ObjectStore(
     val osClient: OsClient,
     val oracleCredentials: KeyPair,
 ) {
-    val keyRef: KeyRef by lazy { DirectKeyRef(oracleCredentials.public, oracleCredentials.private) }
+    val keyRef: KeyRef by lazy { DirectKeyRef(oracleCredentials) }
 }
