@@ -2,10 +2,10 @@ package io.provenance.invoice.components
 
 import io.provenance.invoice.config.eventstream.EventStreamConstants
 import io.provenance.invoice.config.eventstream.EventStreamProperties
+import io.provenance.invoice.services.EventHandlerService
 import io.provenance.invoice.util.eventstream.external.EventBatch
 import io.provenance.invoice.util.eventstream.external.EventStreamFactory
 import io.provenance.invoice.util.eventstream.external.EventStreamResponseObserver
-import io.provenance.invoice.util.eventstream.external.StreamEvent
 import io.provenance.invoice.util.extension.wrapList
 import mu.KLogging
 import org.springframework.data.redis.core.RedisTemplate
@@ -16,10 +16,11 @@ import java.util.concurrent.TimeUnit
 
 @Component
 class EventStreamConsumer(
-    private val lockRegistry: LockRegistry,
-    private val redisTemplate: RedisTemplate<String, Long>,
+    private val eventHandlerService: EventHandlerService,
     private val eventStreamFactory: EventStreamFactory,
     private val eventStreamProperties: EventStreamProperties,
+    private val lockRegistry: LockRegistry,
+    private val redisTemplate: RedisTemplate<String, Long>,
 ) {
     private companion object : KLogging() {
         private const val EVENT_STREAM_CONSUMER = "event-stream-consumer-invoice"
@@ -34,7 +35,7 @@ class EventStreamConsumer(
             try {
                 val responseObserver = EventStreamResponseObserver<EventBatch> { batch ->
                     // Handle each observed event
-                    batch.events.forEach(::handleEvent)
+                    batch.events.forEach(eventHandlerService::handleEvent)
                     redisTemplate.opsForValue().set(EVENT_STREAM_CONSUMER_HEIGHT, batch.height)
                     logger.info("Processed events and established new height: ${batch.height}")
                 }
@@ -59,14 +60,5 @@ class EventStreamConsumer(
                 lock.unlock()
             }
         }
-    }
-
-    private fun handleEvent(event: StreamEvent) {
-        event.attributes.singleOrNull { it.key == "PAYABLE_REGISTERED" }?.also { attribute ->
-            logger.info("Found a live one: ${attribute.value}")
-        } ?: run {
-            logger.info("Not related")
-        }
-        //logger.info("We did it! We saw an event! Hash: ${event.txHash}, Type: ${event.eventType}, Attribute Count: ${event.attributes.size}, Height: ${event.height}")
     }
 }

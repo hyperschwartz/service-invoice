@@ -4,7 +4,6 @@ import com.google.protobuf.Any
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.domain.wallet.WalletDetails
 import io.provenance.scope.util.MetadataAddress
-import io.provenance.scope.util.toUuid
 import mu.KLogging
 import org.springframework.stereotype.Service
 import io.provenance.invoice.repository.InvoiceRepository
@@ -12,6 +11,7 @@ import io.provenance.invoice.util.enums.InvoiceProcessingStatus
 import io.provenance.invoice.util.extension.toAsset
 import io.provenance.invoice.util.extension.toProtoAny
 import io.provenance.invoice.util.extension.toUuid
+import io.provenance.invoice.util.extension.parseUuid
 import io.provenance.invoice.util.validation.InvoiceValidator
 import java.math.BigDecimal
 import java.util.UUID
@@ -48,7 +48,7 @@ class InvoiceService(
             invoice = upsertedInvoice.invoice,
             payablesContractExecutionDetail = PayablesContractExecutionDetail(
                 payableUuid = upsertedInvoice.uuid,
-                scopeId = MetadataAddress.forScope(assetOnboardingResponse.writeScopeRequest.scopeUuid.toUuid()).toString(),
+                scopeId = MetadataAddress.forScope(assetOnboardingResponse.writeScopeRequest.scopeUuid.parseUuid()).toString(),
                 invoiceTotal = upsertedInvoice.totalOwed,
                 invoiceDenom = upsertedInvoice.invoice.paymentDenom,
             ),
