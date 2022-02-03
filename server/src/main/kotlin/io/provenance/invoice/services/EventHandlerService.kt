@@ -8,7 +8,6 @@ import cosmwasm.wasm.v1.Tx
 import io.provenance.client.PbClient
 import io.provenance.client.grpc.BaseReq
 import io.provenance.client.grpc.BaseReqSigner
-import io.provenance.client.grpc.GasEstimate
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.config.provenance.ObjectStore
 import io.provenance.invoice.config.provenance.ProvenanceProperties
@@ -98,29 +97,31 @@ class EventHandlerService(
                         // TODO: Resolve this somehow
                         val oracleAddress = "tp15e6l9dv8s2rdshjfn34k8a2nju55tr4z42phrt"
                         val accountInfo = pbClient.getBaseAccount(oracleAddress)
+                        val baseReq = BaseReq(
+                            signers = BaseReqSigner(
+                                signer = KeySigner(
+                                    address = oracleAddress,
+                                    privateKey = provenanceProperties.oraclePrivateKey,
+                                ),
+                                sequenceOffset = 0,
+                                account = accountInfo,
+                            ).wrapList(),
+                            body = TxOuterClass.TxBody.newBuilder().addMessages(
+                                Tx.MsgExecuteContract.newBuilder()
+                                    .setMsg(OracleApproval.forUuid(invoiceUuid).toBase64Msg())
+                                    .setContract(contractInfo.address)
+                                    .setSender(oracleAddress)
+                                    .build()
+                                    .toProtoAny()
+                            ).setMemo("Oracle signature").build(),
+                            chainId = provenanceProperties.chainId,
+                            gasAdjustment = 2.0,
+                        )
+                        val gasEstimate = pbClient.estimateTx(baseReq)
                         val response = try {
                             pbClient.broadcastTx(
-                                baseReq = BaseReq(
-                                    signers = BaseReqSigner(
-                                        signer = KeySigner(
-                                            address = oracleAddress,
-                                            privateKey = provenanceProperties.oraclePrivateKey,
-                                        ),
-                                        sequenceOffset = 0,
-                                        account = accountInfo,
-                                    ).wrapList(),
-                                    body = TxOuterClass.TxBody.newBuilder().addMessages(
-                                        Tx.MsgExecuteContract.newBuilder()
-                                            .setMsg(OracleApproval.forUuid(invoiceUuid).toBase64Msg())
-                                            .setContract(contractInfo.address)
-                                            .setSender(oracleAddress)
-                                            .build()
-                                            .toProtoAny()
-                                    ).setMemo("Oracle signature").build(),
-                                    chainId = provenanceProperties.chainId,
-                                    gasAdjustment = 2.0,
-                                ),
-                                gasEstimate = GasEstimate(1905),
+                                baseReq = baseReq,
+                                gasEstimate = gasEstimate,
                                 mode = BroadcastMode.BROADCAST_MODE_BLOCK
                             )
                         } catch (e: Exception) {

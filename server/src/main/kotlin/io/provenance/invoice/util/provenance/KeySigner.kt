@@ -9,11 +9,7 @@ import io.provenance.hdwallet.signer.BCECSigner
 import io.provenance.scope.util.sha256
 import java.security.PrivateKey
 
-
-class KeySigner(
-    private val address: String,
-    privateKey: PrivateKey
-): Signer {
+class KeySigner(private val address: String, privateKey: PrivateKey): Signer {
     private val keyPair = privateKey.toECPrivateKey().toECKeyPair()
 
     override fun address(): String = address
