@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.google.protobuf.ByteString
 import io.provenance.invoice.config.app.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
-import io.provenance.scope.objectstore.util.base64Encode
 import io.provenance.scope.util.toByteString
 import java.util.UUID
 
@@ -18,11 +17,7 @@ data class OracleApproval(
         )
     }
 
-    fun toBase64Msg(): ByteString = DEFAULT_OBJECT_MAPPER
-        .writeValueAsString(this)
-        .toByteArray(Charsets.UTF_8)
-        .base64Encode()
-        .toByteString()
+    fun toBase64Msg(): ByteString = DEFAULT_OBJECT_MAPPER.writeValueAsString(this).toByteString()
 }
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
