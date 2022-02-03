@@ -7,6 +7,7 @@ import cosmos.tx.v1beta1.TxOuterClass
 import cosmwasm.wasm.v1.Tx
 import io.provenance.client.PbClient
 import io.provenance.client.grpc.BaseReq
+import io.provenance.client.grpc.BaseReqSigner
 import io.provenance.client.grpc.GasEstimate
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.config.provenance.ObjectStore
@@ -19,6 +20,8 @@ import io.provenance.invoice.util.extension.checkNotNull
 import io.provenance.invoice.util.extension.parseUuid
 import io.provenance.invoice.util.extension.toProtoAny
 import io.provenance.invoice.util.extension.unpackInvoice
+import io.provenance.invoice.util.extension.wrapList
+import io.provenance.invoice.util.provenance.KeySigner
 import io.provenance.invoice.util.validation.InvoiceValidator
 import io.provenance.name.v1.QueryResolveRequest
 import io.provenance.scope.encryption.domain.inputstream.DIMEInputStream
@@ -66,7 +69,9 @@ class EventHandlerService(
             .also { logger.info("Handling invoice registration event for invoice uuid [$it]") }
             .parseUuid()
         val invoiceDto = invoiceRepository.findDtoByUuid(invoiceUuid)
-        if (invoiceDto.status != InvoiceStatus.PENDING_STAMP) {
+        if (invoiceDto.status !in INVOICE_STATUSES_ALLOWED_FOR_ORACLE_APPROVAL) {
+            logger.info("Skipping invoice registration for finalized invoice [${invoiceDto.uuid}] with status [${invoiceDto.status.name}]")
+            return
         }
         val assetHash = invoiceDto.writeRecordRequest.record.resultHash()
         val getFuture = objectStore.osClient.get(
@@ -90,16 +95,25 @@ class EventHandlerService(
                         }
                         logger.info("Successfully validated invoice from object store [${targetInvoice.invoiceUuid.value}]. Marking oracle approval on the chain")
                         val contractInfo = pbClient.nameClient.resolve(QueryResolveRequest.newBuilder().setName(provenanceProperties.payablesContractName).build())
+                        // TODO: Resolve this somehow
+                        val oracleAddress = "tp15e6l9dv8s2rdshjfn34k8a2nju55tr4z42phrt"
+                        val accountInfo = pbClient.getBaseAccount(oracleAddress)
                         val response = try {
                             pbClient.broadcastTx(
                                 baseReq = BaseReq(
-                                    signers = emptyList(),
+                                    signers = BaseReqSigner(
+                                        signer = KeySigner(
+                                            address = oracleAddress,
+                                            privateKey = provenanceProperties.oraclePrivateKey,
+                                        ),
+                                        sequenceOffset = 0,
+                                        account = accountInfo,
+                                    ).wrapList(),
                                     body = TxOuterClass.TxBody.newBuilder().addMessages(
                                         Tx.MsgExecuteContract.newBuilder()
                                             .setMsg(OracleApproval.forUuid(invoiceUuid).toBase64Msg())
                                             .setContract(contractInfo.address)
-                                            // TODO: Resolve this somehow
-                                            .setSender("tp15e6l9dv8s2rdshjfn34k8a2nju55tr4z42phrt")
+                                            .setSender(oracleAddress)
                                             .build()
                                             .toProtoAny()
                                     ).setMemo("Oracle signature").build(),
