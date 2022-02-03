@@ -8,7 +8,7 @@ import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.select
-import io.provenance.invoice.util.enums.InvoiceProcessingStatus
+import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.exposed.offsetDatetime
 import io.provenance.invoice.util.exposed.proto
 import io.provenance.invoice.util.extension.toUuid
@@ -33,7 +33,7 @@ object InvoiceTable : UUIDTable(columnName = "invoice_uuid", name = "invoice") {
 open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<InvoiceRecord>(invoiceTable) {
     fun insert(
         invoice: Invoice,
-        status: InvoiceProcessingStatus,
+        status: InvoiceStatus,
         writeScopeRequest: MsgWriteScopeRequest,
         writeSessionRequest: MsgWriteSessionRequest,
         writeRecordRequest: MsgWriteRecordRequest,
@@ -55,7 +55,7 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
 
     fun update(
         invoiceParam: InvoiceUpdateQueryParam,
-        status: InvoiceProcessingStatus? = null,
+        status: InvoiceStatus? = null,
         writeScopeRequest: MsgWriteScopeRequest? = null,
         writeSessionRequest: MsgWriteSessionRequest? = null,
         writeRecordRequest: MsgWriteRecordRequest? = null,
@@ -97,7 +97,7 @@ class InvoiceRecord(uuid: EntityID<UUID>) : UUIDEntity(uuid) {
 
     val invoice: Invoice by lazy { data }
     val invoiceUuid: UUID by lazy { invoice.invoiceUuid.toUuid() }
-    val processingStatus: InvoiceProcessingStatus by lazy { InvoiceProcessingStatus.valueOf(status) }
+    val processingStatus: InvoiceStatus by lazy { InvoiceStatus.valueOf(status) }
 
     fun toDto(): InvoiceDto = InvoiceDto.fromRecord(this)
 }

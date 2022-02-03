@@ -1,8 +1,8 @@
 package io.provenance.invoice.util.enums
 
-enum class InvoiceProcessingStatus {
+enum class InvoiceStatus {
     PENDING_STAMP,
-    STAMPED,
+    APPROVAL_FAILURE,
     APPROVED,
     REJECTED,
 }

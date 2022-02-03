@@ -7,7 +7,7 @@ import io.provenance.scope.util.MetadataAddress
 import mu.KLogging
 import org.springframework.stereotype.Service
 import io.provenance.invoice.repository.InvoiceRepository
-import io.provenance.invoice.util.enums.InvoiceProcessingStatus
+import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.extension.toAsset
 import io.provenance.invoice.util.extension.toProtoAny
 import io.provenance.invoice.util.extension.toUuid
@@ -39,7 +39,7 @@ class InvoiceService(
         logger.info("Storing successful payload in the database for invoice [${request.invoice.invoiceUuid.value}]")
         val upsertedInvoice = invoiceRepository.insert(
             invoice = request.invoice,
-            status = InvoiceProcessingStatus.PENDING_STAMP,
+            status = InvoiceStatus.PENDING_STAMP,
             writeScopeRequest = assetOnboardingResponse.writeScopeRequest,
             writeSessionRequest = assetOnboardingResponse.writeSessionRequest,
             writeRecordRequest = assetOnboardingResponse.writeRecordRequest,

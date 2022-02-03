@@ -7,7 +7,7 @@ import io.provenance.invoice.domain.entities.InvoiceUpdateQueryParam
 import io.provenance.invoice.domain.exceptions.ResourceNotFoundException
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.stereotype.Repository
-import io.provenance.invoice.util.enums.InvoiceProcessingStatus
+import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -27,7 +27,7 @@ class InvoiceRepository {
 
     fun insert(
         invoice: Invoice,
-        status: InvoiceProcessingStatus,
+        status: InvoiceStatus,
         writeScopeRequest: MsgWriteScopeRequest,
         writeSessionRequest: MsgWriteSessionRequest,
         writeRecordRequest: MsgWriteRecordRequest,
@@ -43,8 +43,8 @@ class InvoiceRepository {
 
     fun update(
         invoice: Invoice,
-        status: InvoiceProcessingStatus? = null,
-        processingStatus: InvoiceProcessingStatus? = null,
+        status: InvoiceStatus? = null,
+        processingStatus: InvoiceStatus? = null,
         writeScopeRequest: MsgWriteScopeRequest? = null,
         writeSessionRequest: MsgWriteSessionRequest? = null,
         writeRecordRequest: MsgWriteRecordRequest? = null,
@@ -60,8 +60,8 @@ class InvoiceRepository {
 
     fun update(
         uuid: UUID,
-        status: InvoiceProcessingStatus? = null,
-        processingStatus: InvoiceProcessingStatus? = null,
+        status: InvoiceStatus? = null,
+        processingStatus: InvoiceStatus? = null,
         writeScopeRequest: MsgWriteScopeRequest? = null,
         writeSessionRequest: MsgWriteSessionRequest? = null,
         writeRecordRequest: MsgWriteRecordRequest? = null,

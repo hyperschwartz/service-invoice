@@ -2,7 +2,7 @@ package io.provenance.invoice.domain.dto
 
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.domain.entities.InvoiceRecord
-import io.provenance.invoice.util.enums.InvoiceProcessingStatus
+import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.extension.totalAmount
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
@@ -15,7 +15,7 @@ import java.util.UUID
 data class InvoiceDto(
     val uuid: UUID,
     val invoice: Invoice,
-    val processingStatus: InvoiceProcessingStatus,
+    val status: InvoiceStatus,
     val totalOwed: BigDecimal,
     val writeScopeRequest: MsgWriteScopeRequest,
     val writeSessionRequest: MsgWriteSessionRequest,
@@ -27,7 +27,7 @@ data class InvoiceDto(
         fun fromRecord(record: InvoiceRecord): InvoiceDto = InvoiceDto(
             uuid = record.invoiceUuid,
             invoice = record.invoice,
-            processingStatus = record.processingStatus,
+            status = record.processingStatus,
             totalOwed = record.invoice.totalAmount(),
             writeScopeRequest = record.writeScopeRequest,
             writeSessionRequest = record.writeSessionRequest,

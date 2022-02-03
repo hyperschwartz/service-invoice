@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.testhelpers.IntTestBase
-import io.provenance.invoice.util.enums.InvoiceProcessingStatus
+import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.extension.toUuid
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
@@ -88,7 +88,7 @@ class InvoiceRepositoryIntTest : IntTestBase() {
 
     private fun insertInvoice(invoice: Invoice): InvoiceDto = invoiceRepository.insert(
         invoice = invoice,
-        status = InvoiceProcessingStatus.PENDING_STAMP,
+        status = InvoiceStatus.PENDING_STAMP,
         writeScopeRequest = MsgWriteScopeRequest.getDefaultInstance(),
         writeSessionRequest = MsgWriteSessionRequest.getDefaultInstance(),
         writeRecordRequest = MsgWriteRecordRequest.getDefaultInstance(),
