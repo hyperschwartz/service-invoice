@@ -1,8 +1,6 @@
 package io.provenance.invoice.config.provenance
 
-import com.google.common.io.BaseEncoding
 import io.provenance.client.PbClient
-import io.provenance.scope.encryption.ecies.ECUtils
 import io.provenance.scope.encryption.model.DirectKeyRef
 import io.provenance.scope.encryption.model.KeyRef
 import io.provenance.scope.objectstore.client.OsClient
@@ -26,10 +24,7 @@ class ProvenanceConfig {
             uri = provenanceProperties.objectStoreUri,
             deadlineMs = provenanceProperties.objectStoreTimeoutMs,
         ),
-        oracleCredentials = KeyPair(
-            ECUtils.convertBytesToPublicKey(BaseEncoding.base64().decode(provenanceProperties.oraclePublicKey)),
-            ECUtils.convertBytesToPrivateKey(BaseEncoding.base64().decode(provenanceProperties.oraclePrivateKey)),
-        )
+        oracleCredentials = provenanceProperties.oracleKeyPair,
     )
 }
 

@@ -28,7 +28,7 @@ class AssetOnboardingService(
         // this application) can query object store for the asset, allowing us to validate the invoice
         return onboardingApi.generateOnboarding(
             address = walletDetails.address,
-            publicKey = provenanceProperties.oraclePublicKey,
+            publicKey = provenanceProperties.oraclePublicKeyEncoded,
             asset = asset,
         ).let { onboardingResponse ->
             AssetOnboardingResponse(
