@@ -113,10 +113,13 @@ class EventHandlerService(
                             logger.error("Oracle signing failed", e)
                             invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVAL_FAILURE)
                             null
-                        }
-                        if (response != null) {
+                        }?.txResponse
+                        if (response != null && response.data.isNotBlank() && response.info.isNotBlank()) {
                             logger.info("Successfully signed as the oracle! Woo! Response: $response")
                             invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVED)
+                        } else {
+                            logger.error("Failed to sign as the oracle. Response: $response")
+                            invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVAL_FAILURE)
                         }
                     }
             }

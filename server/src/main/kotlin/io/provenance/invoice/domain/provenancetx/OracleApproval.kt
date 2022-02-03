@@ -1,11 +1,14 @@
 package io.provenance.invoice.domain.provenancetx
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.google.protobuf.ByteString
 import io.provenance.invoice.config.app.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
 import io.provenance.scope.objectstore.util.base64Encode
 import io.provenance.scope.util.toByteString
 import java.util.UUID
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class OracleApproval(
     val oracleApproval: OracleApprovalBody
 ) {
@@ -22,4 +25,5 @@ data class OracleApproval(
         .toByteString()
 }
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class OracleApprovalBody(val payableUuid: UUID)
