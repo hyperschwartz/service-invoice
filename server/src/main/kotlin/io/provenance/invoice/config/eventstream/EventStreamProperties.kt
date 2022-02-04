@@ -10,4 +10,5 @@ data class EventStreamProperties(
     val websocketUri: URI,
     val rpcUri: String,
     val epochHeight: String,
+    val enabled: Boolean,
 )

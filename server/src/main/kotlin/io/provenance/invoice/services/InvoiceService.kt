@@ -8,10 +8,10 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.util.enums.InvoiceStatus
-import io.provenance.invoice.util.extension.toAsset
-import io.provenance.invoice.util.extension.toProtoAny
-import io.provenance.invoice.util.extension.toUuid
-import io.provenance.invoice.util.extension.parseUuid
+import io.provenance.invoice.util.extension.scopeIdI
+import io.provenance.invoice.util.extension.toAssetI
+import io.provenance.invoice.util.extension.toProtoAnyI
+import io.provenance.invoice.util.extension.toUuidI
 import io.provenance.invoice.util.validation.InvoiceValidator
 import java.math.BigDecimal
 import java.util.UUID
@@ -30,9 +30,9 @@ class InvoiceService(
         InvoiceValidator.validateInvoice(request.invoice)
         logger.info("Verifying invoice with uuid [${request.invoice.invoiceUuid.value}] has not yet been boarded")
         // Verify an invoice with the same uuid does not exist
-        check(invoiceRepository.findByUuidOrNull(request.invoice.invoiceUuid.toUuid()) == null) { "Requested invoice uuid [${request.invoice.invoiceUuid.value}] matches previously uploaded invoice" }
+        check(invoiceRepository.findByUuidOrNull(request.invoice.invoiceUuid.toUuidI()) == null) { "Requested invoice uuid [${request.invoice.invoiceUuid.value}] matches previously uploaded invoice" }
         logger.info("Generating onboarding asset from invoice with uuid [${request.invoice.invoiceUuid.value}]")
-        val asset = request.invoice.toAsset()
+        val asset = request.invoice.toAssetI()
         logger.info("Generating onboarding messages for invoice with uuid [${request.invoice.invoiceUuid.value}]")
         // TODO: Need to store the results from this in the db alongside the invoice to enable retries
         val assetOnboardingResponse = assetOnboardingService.generateInvoiceBoardingTx(asset = asset, walletDetails = request.walletDetails)
@@ -48,16 +48,16 @@ class InvoiceService(
             invoice = upsertedInvoice.invoice,
             payablesContractExecutionDetail = PayablesContractExecutionDetail(
                 payableUuid = upsertedInvoice.uuid,
-                scopeId = MetadataAddress.forScope(assetOnboardingResponse.writeScopeRequest.scopeUuid.parseUuid()).toString(),
+                scopeId = assetOnboardingResponse.writeScopeRequest.scopeIdI(),
                 invoiceTotal = upsertedInvoice.totalOwed,
                 invoiceDenom = upsertedInvoice.invoice.paymentDenom,
             ),
             scopeGenerationDetail = ScopeGenerationDetail(
                 // Re-package the derived blockchain messages from the asset onboarding response to Any, which is what
                 // the frontend expects to receive and send to the blockchain
-                writeScopeRequest = assetOnboardingResponse.writeScopeRequest.toProtoAny(),
-                writeSessionRequest = assetOnboardingResponse.writeSessionRequest.toProtoAny(),
-                writeRecordRequest = assetOnboardingResponse.writeRecordRequest.toProtoAny(),
+                writeScopeRequest = assetOnboardingResponse.writeScopeRequest.toProtoAnyI(),
+                writeSessionRequest = assetOnboardingResponse.writeSessionRequest.toProtoAnyI(),
+                writeRecordRequest = assetOnboardingResponse.writeRecordRequest.toProtoAnyI(),
             ),
         )
     }

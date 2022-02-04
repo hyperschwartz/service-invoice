@@ -12,148 +12,204 @@ import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.config.provenance.ObjectStore
 import io.provenance.invoice.config.provenance.ProvenanceProperties
 import io.provenance.invoice.domain.provenancetx.OracleApproval
+import io.provenance.invoice.factory.InvoiceCalcFactory
 import io.provenance.invoice.repository.InvoiceRepository
+import io.provenance.invoice.repository.PaymentRepository
+import io.provenance.invoice.util.enums.ExpectedPayableType
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.eventstream.external.StreamEvent
-import io.provenance.invoice.util.extension.checkNotNull
-import io.provenance.invoice.util.extension.parseUuid
-import io.provenance.invoice.util.extension.toProtoAny
-import io.provenance.invoice.util.extension.unpackInvoice
-import io.provenance.invoice.util.extension.wrapList
-import io.provenance.invoice.util.provenance.KeySigner
+import io.provenance.invoice.util.extension.attributeValueI
+import io.provenance.invoice.util.extension.checkNotNullI
+import io.provenance.invoice.util.extension.toProtoAnyI
+import io.provenance.invoice.util.extension.unpackInvoiceI
+import io.provenance.invoice.util.extension.wrapListI
+import io.provenance.invoice.util.provenance.AccountSigner
+import io.provenance.invoice.util.provenance.PayableContractKey
 import io.provenance.invoice.util.validation.InvoiceValidator
 import io.provenance.name.v1.QueryResolveRequest
 import io.provenance.scope.encryption.domain.inputstream.DIMEInputStream
 import io.provenance.scope.sdk.extensions.resultHash
 import mu.KLogging
 import org.springframework.stereotype.Service
+import java.time.OffsetDateTime
+import java.util.UUID
 import java.util.concurrent.Executors
 
 @Service
 class EventHandlerService(
+    private val invoiceCalcFactory: InvoiceCalcFactory,
     private val pbClient: PbClient,
     private val provenanceProperties: ProvenanceProperties,
     private val objectStore: ObjectStore,
     private val invoiceRepository: InvoiceRepository,
+    private val paymentRepository: PaymentRepository,
 ) {
 
     private companion object : KLogging() {
-        private const val PAYABLE_REGISTRATION_KEY: String = "PAYABLE_REGISTERED"
-        private const val ORACLE_APPROVED_KEY: String = "ORACLE_APPROVED"
-        private const val PAYMENT_MADE_KEY: String = "PAYMENT_MADE"
-
         private val INVOICE_STATUSES_ALLOWED_FOR_ORACLE_APPROVAL = setOf(
             // All newly-boarded invoices end up in this status and should be attempted to be approved
             InvoiceStatus.PENDING_STAMP,
             // Invoices with this status failed to approve via contract execution.  They should be retried
             InvoiceStatus.APPROVAL_FAILURE,
         )
+
+        private val INVOICE_STATUSES_ALLOWED_FOR_PAYMENT = setOf(
+            // Payments should only be allowed for oracle-approved invoices
+            InvoiceStatus.APPROVED,
+        )
+
+        private val HANDLER_THREAD_POOL = Executors.newFixedThreadPool(10)
     }
 
     fun handleEvent(event: StreamEvent) {
-        val eventKeys = event.attributes.map { it.key }
         try {
+            // Payable type should be emitted by all events
+            val payableType = event.attributeValueI<String>(PayableContractKey.PAYABLE_TYPE)
+            if (payableType != ExpectedPayableType.INVOICE.contractName) {
+                logger.info("Ignoring event [${event.txHash}] for non-invoice payable with type [$payableType]")
+                return
+            }
+            val incomingEvent = IncomingInvoiceEvent(
+                streamEvent = event,
+                invoiceUuid = event.attributeValueI(PayableContractKey.PAYABLE_UUID)
+            )
+            val eventKeys = event.attributes.map { it.key }
             when {
-                PAYABLE_REGISTRATION_KEY in eventKeys -> handleInvoiceRegisteredEvent(event)
-                ORACLE_APPROVED_KEY in eventKeys -> handleOracleApprovedEvent(event)
-                PAYMENT_MADE_KEY in eventKeys -> handlePaymentMadeEvent(event)
+                PayableContractKey.PAYABLE_REGISTERED.contractName in eventKeys -> handleInvoiceRegisteredEvent(incomingEvent)
+                PayableContractKey.ORACLE_APPROVED.contractName in eventKeys -> handleOracleApprovedEvent(incomingEvent)
+                PayableContractKey.PAYMENT_MADE.contractName in eventKeys -> handlePaymentMadeEvent(incomingEvent)
             }
         } catch (e: Exception) {
             logger.error("Failed to process event with hash [${event.txHash}] and type [${event.eventType}] at height [${event.height}]", e)
         }
     }
 
-    private fun handleInvoiceRegisteredEvent(event: StreamEvent) {
-        val invoiceUuid = event.attributeValue(PAYABLE_REGISTRATION_KEY)
-            .also { logger.info("Handling invoice registration event for invoice uuid [$it]") }
-            .parseUuid()
-        val invoiceDto = invoiceRepository.findDtoByUuid(invoiceUuid)
+    fun handleInvoiceRegisteredEvent(event: IncomingInvoiceEvent) {
+        val logPrefix = "INVOICE REGISTRATION [${event.invoiceUuid}]:"
+        logger.info("$logPrefix: Handling event")
+        val invoiceDto = invoiceRepository.findDtoByUuid(event.invoiceUuid)
         if (invoiceDto.status !in INVOICE_STATUSES_ALLOWED_FOR_ORACLE_APPROVAL) {
-            logger.info("Skipping invoice registration for finalized invoice [${invoiceDto.uuid}] with status [${invoiceDto.status.name}]")
+            logger.info("$logPrefix Skipping for finalized invoice with status [${invoiceDto.status.name}]")
             return
         }
         val assetHash = invoiceDto.writeRecordRequest.record.resultHash()
         val getFuture = objectStore.osClient.get(
             hash = assetHash,
-            publicKey = objectStore.oracleCredentials.public,
+            publicKey = objectStore.oracleAccountDetail.publicKey,
         )
         Futures.addCallback(getFuture, object : FutureCallback<DIMEInputStream> {
             override fun onSuccess(result: DIMEInputStream?) {
                 result
-                    .checkNotNull { "Null DIMEInputStream received from object store query for invoice [$invoiceUuid]" }
-                    .getDecryptedPayload(objectStore.keyRef)
+                    .checkNotNullI { "$logPrefix Null DIMEInputStream received from object store query" }
+                    .getDecryptedPayload(objectStore.oracleAccountDetail.keyRef)
                     .use { signatureStream ->
                         val messageBytes = signatureStream.readAllBytes()
-                        val targetInvoice = Asset.parseFrom(messageBytes).unpackInvoice()
+                        val targetInvoice = Asset.parseFrom(messageBytes).unpackInvoiceI()
                         try {
-                            InvoiceValidator.validateInvoice(targetInvoice)
+                            InvoiceValidator.validateInvoiceForApproval(
+                                invoiceDto = invoiceDto,
+                                objectStoreInvoice = targetInvoice,
+                                eventScopeId = event.streamEvent.attributeValueI(PayableContractKey.SCOPE_ID),
+                                eventTotalOwed = event.streamEvent.attributeValueI(PayableContractKey.TOTAL_OWED),
+                                eventInvoiceDenom = event.streamEvent.attributeValueI(PayableContractKey.REGISTERED_DENOM),
+                            )
                         } catch (e: Exception) {
-                            logger.error("Invoice [$invoiceUuid] failed validation. Marking rejected", e)
-                            invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.REJECTED)
+                            logger.error("$logPrefix Failed validation. Marking rejected", e)
+                            invoiceRepository.update(uuid = event.invoiceUuid, status = InvoiceStatus.REJECTED)
                             return
                         }
-                        logger.info("Successfully validated invoice from object store [${targetInvoice.invoiceUuid.value}]. Marking oracle approval on the chain")
-                        val contractInfo = pbClient.nameClient.resolve(QueryResolveRequest.newBuilder().setName(provenanceProperties.payablesContractName).build())
-                        // TODO: Resolve this somehow
-                        val oracleAddress = "tp15e6l9dv8s2rdshjfn34k8a2nju55tr4z42phrt"
-                        val accountInfo = pbClient.getBaseAccount(oracleAddress)
+                        logger.info("$logPrefix Successfully validated invoice from object store. Marking oracle approval on the chain")
+                        val contractInfo = try {
+                            pbClient.nameClient.resolve(QueryResolveRequest.newBuilder().setName(provenanceProperties.payablesContractName).build())
+                        } catch (e: Exception) {
+                            logger.error("$logPrefix Failed to resolve contract by name [${provenanceProperties.payablesContractName}]. Marking invoice with approval failure", e)
+                            approvalFailure(event.invoiceUuid)
+                            return
+                        }
+                        val baseAccount = try {
+                            pbClient.getBaseAccount(objectStore.oracleAccountDetail.bech32Address)
+                        } catch (e: Exception) {
+                            logger.error("$logPrefix Failed to fetch base account for oracle address [${objectStore.oracleAccountDetail.bech32Address}]. Marking invoice with approval failure", e)
+                            approvalFailure(event.invoiceUuid)
+                            return
+                        }
                         val baseReq = BaseReq(
                             signers = BaseReqSigner(
-                                signer = KeySigner(
-                                    address = oracleAddress,
-                                    privateKey = provenanceProperties.oraclePrivateKey,
-                                ),
+                                signer = AccountSigner.fromAccountDetail(objectStore.oracleAccountDetail),
                                 sequenceOffset = 0,
-                                account = accountInfo,
-                            ).wrapList(),
+                                account = baseAccount,
+                            ).wrapListI(),
                             body = TxOuterClass.TxBody.newBuilder().addMessages(
                                 Tx.MsgExecuteContract.newBuilder()
-                                    .setMsg(OracleApproval.forUuid(invoiceUuid).toBase64Msg())
+                                    .setMsg(OracleApproval.forUuid(event.invoiceUuid).toBase64Msg())
                                     .setContract(contractInfo.address)
-                                    .setSender(oracleAddress)
+                                    .setSender(objectStore.oracleAccountDetail.bech32Address)
                                     .build()
-                                    .toProtoAny()
+                                    .toProtoAnyI()
                             ).setMemo("Oracle signature").build(),
                             chainId = provenanceProperties.chainId,
                             gasAdjustment = 2.0,
                         )
-                        val gasEstimate = pbClient.estimateTx(baseReq)
-                        val response = try {
-                            pbClient.broadcastTx(
-                                baseReq = baseReq,
-                                gasEstimate = gasEstimate,
-                                mode = BroadcastMode.BROADCAST_MODE_BLOCK
-                            )
+                        val gasEstimate = try {
+                            pbClient.estimateTx(baseReq)
                         } catch (e: Exception) {
-                            logger.error("Oracle signing failed", e)
-                            invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVAL_FAILURE)
-                            null
-                        }?.txResponse
-                        if (response != null && response.data.isNotBlank() && response.info.isNotBlank()) {
-                            logger.info("Successfully signed as the oracle! Woo! Response: $response")
-                            invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVED)
-                        } else {
-                            logger.error("Failed to sign as the oracle. Response: $response")
-                            invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVAL_FAILURE)
+                            logger.error("$logPrefix Failed to estimate gas for oracle approval. Marking invoice with approval failure", e)
+                            approvalFailure(event.invoiceUuid)
+                            return
+                        }
+                        try {
+                            val response = pbClient.broadcastTx(baseReq = baseReq, gasEstimate = gasEstimate, mode = BroadcastMode.BROADCAST_MODE_BLOCK)
+                                .checkNotNullI { "$logPrefix Null response received from oracle approval transaction" }
+                                .txResponse
+                            check(response.code == 0) { "$logPrefix Oracle approval transaction failed. Marking invoice as failed. Error log from Provenance: ${response.rawLog}" }
+                            logger.info("$logPrefix Oracle approval transaction succeeded. Marking invoice as approved")
+                            invoiceRepository.update(uuid = event.invoiceUuid, status = InvoiceStatus.APPROVED)
+                        } catch (e: Exception) {
+                            logger.error("Oracle approval failed exceptionally", e)
+                            approvalFailure(event.invoiceUuid)
                         }
                     }
             }
             override fun onFailure(t: Throwable) {
-                logger.error("Failed to receive invoice [$invoiceUuid] DIME stream from object store", t)
+                logger.error("$logPrefix Failed to receive DIME stream from object store", t)
             }
-        }, Executors.newSingleThreadExecutor())
+        }, HANDLER_THREAD_POOL)
     }
 
-    private fun handleOracleApprovedEvent(event: StreamEvent) {
+    fun handleOracleApprovedEvent(event: IncomingInvoiceEvent) {
         logger.info("Handling oracle approved event")
     }
 
-    private fun handlePaymentMadeEvent(event: StreamEvent) {
-        logger.info("Handling payment made event")
+    fun handlePaymentMadeEvent(event: IncomingInvoiceEvent) {
+        val paymentUuid = UUID.randomUUID()
+        val logPrefix = "PAYMENT MADE [Invoice ${event.invoiceUuid} | Payment $paymentUuid]:"
+        logger.info("$logPrefix Handling payment made event")
+        val calc = invoiceCalcFactory.generate(event.invoiceUuid)
+        val paymentTime = event.streamEvent.attributeValueI<OffsetDateTime>(PayableContractKey.PAYMENT_TIME)
+        if (calc.payments.none { it.effectiveTime == paymentTime }) {
+            logger.warn("$logPrefix Duplicate payment for time [$paymentTime] received. Ignoring duplicate request")
+            return
+        }
+        if (calc.invoiceStatus !in INVOICE_STATUSES_ALLOWED_FOR_PAYMENT) {
+            logger.error("$logPrefix Payment received for invoice with status [${calc.invoiceStatus}]. This is a bug. Please investigate")
+        }
+        if (calc.isPaidOff) {
+            logger.error("$logPrefix Payment received for paid off invoice [${calc.uuid}]")
+        }
+        logger.info("$logPrefix Storing new received payment for time [$paymentTime]")
+        paymentRepository.insert(
+            paymentUuid = paymentUuid,
+            invoiceUuid = event.invoiceUuid,
+            paymentTime = paymentTime,
+            fromAddress = event.streamEvent.attributeValueI(PayableContractKey.PAYER),
+            toAddress = event.streamEvent.attributeValueI(PayableContractKey.PAYEE),
+            paymentAmount = event.streamEvent.attributeValueI(PayableContractKey.PAYMENT_AMOUNT),
+        )
     }
 
-    private fun StreamEvent.attributeValueOrNull(key: String): String? = attributes.singleOrNull { it.key == key }?.value
-
-    private fun StreamEvent.attributeValue(key: String): String = attributeValueOrNull(key)
-        .checkNotNull { "Unable to find stream attribute with key [$key]" }
+    private fun approvalFailure(invoiceUuid: UUID) {
+        invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVAL_FAILURE)
+    }
 }
+
+data class IncomingInvoiceEvent(val streamEvent: StreamEvent, val invoiceUuid: UUID)

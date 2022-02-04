@@ -9,7 +9,7 @@ class GenericExtensionsTest {
     fun testFlowTo() {
         val a = "String"
         val b = 12
-        a.flowTo(b) { string, int ->
+        a.flowToI(b) { string, int ->
             assertEquals(
                 expected = a,
                 actual = string,
@@ -31,12 +31,12 @@ class GenericExtensionsTest {
             }
         }
         assertNull(
-            actual = tryOrNull { maybeException(10, throwException = true) },
+            actual = tryOrNullI { maybeException(10, throwException = true) },
             message = "On an exception, null should be returned",
         )
         assertEquals(
             expected = 10,
-            actual = tryOrNull { maybeException(10, throwException = false) },
+            actual = tryOrNullI { maybeException(10, throwException = false) },
             message = "When no exception occurs, the returned value should be responded with",
         )
     }

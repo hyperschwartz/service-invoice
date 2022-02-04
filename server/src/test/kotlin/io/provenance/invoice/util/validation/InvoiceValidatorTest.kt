@@ -3,10 +3,10 @@ package io.provenance.invoice.util.validation
 import helper.MockProtoUtil
 import helper.assertSucceeds
 import io.provenance.invoice.util.enums.ExpectedDenom
-import io.provenance.invoice.util.extension.toBigDecimalOrNull
-import io.provenance.invoice.util.extension.toLocalDate
-import io.provenance.invoice.util.extension.toProtoDate
-import io.provenance.invoice.util.extension.toProtoDecimal
+import io.provenance.invoice.util.extension.toBigDecimalOrNullI
+import io.provenance.invoice.util.extension.toLocalDateI
+import io.provenance.invoice.util.extension.toProtoDateI
+import io.provenance.invoice.util.extension.toProtoDecimalI
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -71,7 +71,7 @@ class InvoiceValidatorTest {
     @Test
     fun testInvoiceCreatedDateAfterTodaysDateValidation() {
         val todaysDate = LocalDate.now()
-        val badInvoice = MockProtoUtil.getMockInvoice().toBuilder().setInvoiceCreatedDate(todaysDate.plusDays(1).toProtoDate()).build()
+        val badInvoice = MockProtoUtil.getMockInvoice().toBuilder().setInvoiceCreatedDate(todaysDate.plusDays(1).toProtoDateI()).build()
         assertFails("An invoice with a created date in the future should be rejected") {
             InvoiceValidator.validateInvoice(badInvoice)
         }
@@ -88,7 +88,7 @@ class InvoiceValidatorTest {
     @Test
     fun testInvoiceDueDateBeforeCreatedDateValidation() {
         val badInvoice = MockProtoUtil.getMockInvoice().toBuilder().also { invoiceBuilder ->
-            invoiceBuilder.invoiceDueDate = invoiceBuilder.invoiceCreatedDate.toLocalDate().minusDays(1).toProtoDate()
+            invoiceBuilder.invoiceDueDate = invoiceBuilder.invoiceCreatedDate.toLocalDateI().minusDays(1).toProtoDateI()
         }.build()
         assertFails("An invoice with a due date before its created date should be rejected") {
             InvoiceValidator.validateInvoice(badInvoice)
@@ -143,7 +143,7 @@ class InvoiceValidatorTest {
             invoiceBuilder.addLineItems(
                 MockProtoUtil.getMockLineItem(
                     quantity = 1,
-                    price = "-10".toProtoDecimal(),
+                    price = "-10".toProtoDecimalI(),
                 )
             )
         }.build()
@@ -155,7 +155,7 @@ class InvoiceValidatorTest {
                 invoiceBuilder.addLineItems(
                     MockProtoUtil.getMockLineItem(
                         quantity = 100,
-                        price = BigDecimal.ZERO.toProtoDecimal(),
+                        price = BigDecimal.ZERO.toProtoDecimalI(),
                     )
                 )
             }.build())
@@ -207,20 +207,20 @@ class InvoiceValidatorTest {
 
     @Test
     fun testLineItemWithBadPriceValidation() {
-        val badLineItem = MockProtoUtil.getMockLineItem(price = BigDecimal.ZERO.toProtoDecimal())
+        val badLineItem = MockProtoUtil.getMockLineItem(price = BigDecimal.ZERO.toProtoDecimalI())
         assertEquals(
             expected = BigDecimal.ZERO,
-            actual = badLineItem.price.toBigDecimalOrNull(),
+            actual = badLineItem.price.toBigDecimalOrNullI(),
             message = "Sanity check: The mock builder should produce a price of zero when requested",
         )
         assertFails("A line item with a zero price should be rejected") {
             InvoiceValidator.validateLineItem(invoiceUuid = UUID.randomUUID(), lineItem = badLineItem)
         }
         assertFails("A line item with a negative price should be rejected") {
-            InvoiceValidator.validateLineItem(invoiceUuid = UUID.randomUUID(), lineItem = badLineItem.toBuilder().setPrice("-0.01".toProtoDecimal()).build())
+            InvoiceValidator.validateLineItem(invoiceUuid = UUID.randomUUID(), lineItem = badLineItem.toBuilder().setPrice("-0.01".toProtoDecimalI()).build())
         }
         assertSucceeds("A line item with a very low amount should still be accepted") {
-            InvoiceValidator.validateLineItem(invoiceUuid = UUID.randomUUID(), lineItem = badLineItem.toBuilder().setPrice("0.0000001".toProtoDecimal()).build())
+            InvoiceValidator.validateLineItem(invoiceUuid = UUID.randomUUID(), lineItem = badLineItem.toBuilder().setPrice("0.0000001".toProtoDecimalI()).build())
         }
     }
 }

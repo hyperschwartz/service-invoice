@@ -23,33 +23,33 @@ class ProtoExtensionsTest {
         val javaUuid = UUID.randomUUID()
         assertEquals(
             expected = javaUuid.toString(),
-            actual = javaUuid.toProtoUuid().value,
+            actual = javaUuid.toProtoUuidI().value,
             message = "Expected the value of the proto uuid to equal the java uuid in string form",
         )
         assertEquals(
             expected = javaUuid,
-            actual = javaUuid.toProtoUuid().toUuid(),
+            actual = javaUuid.toProtoUuidI().toUuidI(),
             message = "Expected the java uuid to equal itself when going round trip from java to java",
         )
         assertEquals(
             expected = javaUuid,
-            actual = javaUuid.toString().toProtoUuid().toUuid(),
+            actual = javaUuid.toString().toProtoUuidI().toUuidI(),
             message = "Expected the java uuid in stringified form to survive a full trip to proto uuid",
         )
         val protoUuid = UtilProtosBuilders.UUID { value = UUID.randomUUID().toString() }
         assertEquals(
             expected = protoUuid.value,
-            actual = protoUuid.toUuid().toString(),
+            actual = protoUuid.toUuidI().toString(),
             message = "Expected the value of the proto uuid to equate to the stringified version of the java uuid after converting proto -> java",
         )
         assertEquals(
             expected = protoUuid,
-            actual = protoUuid.toUuid().toProtoUuid(),
+            actual = protoUuid.toUuidI().toProtoUuidI(),
             message = "Expected the proto uuid to equal itself after a round trip from proto to proto"
         )
         val invalidProtoUuid = UtilProtosBuilders.UUID { value = "no u" }
         assertNull(
-            actual = invalidProtoUuid.toUuidOrNull(),
+            actual = invalidProtoUuid.toUuidOrNullI(),
             message = "Expected an invalid proto uuid to equate to null after an attempted conversion",
         )
     }
@@ -59,28 +59,28 @@ class ProtoExtensionsTest {
         val javaDate = LocalDate.now()
         assertEquals(
             expected = javaDate.toString(),
-            actual = javaDate.toProtoDate().value,
+            actual = javaDate.toProtoDateI().value,
             message = "Expected the value of the proto date to equal the java date in string form",
         )
         assertEquals(
             expected = javaDate,
-            actual = javaDate.toProtoDate().toLocalDate(),
+            actual = javaDate.toProtoDateI().toLocalDateI(),
             message = "Expected the java date to equal itself when going round trip from java to java",
         )
         val protoDate = UtilProtosBuilders.Date { value = LocalDate.now().toString() }
         assertEquals(
             expected = protoDate.value,
-            actual = protoDate.toLocalDate().toString(),
+            actual = protoDate.toLocalDateI().toString(),
             message = "Expected the value of the proto date to equate to the stringified version of the java date after converting proto -> java",
         )
         assertEquals(
             expected = protoDate,
-            actual = protoDate.toLocalDate().toProtoDate(),
+            actual = protoDate.toLocalDateI().toProtoDateI(),
             message = "Expected the proto date to equal itself after a round trip from proto to proto"
         )
         val invalidProtoDate = UtilProtosBuilders.Date { value = "2022-01-012" }
         assertNull(
-            actual = invalidProtoDate.toLocalDateOrNull(),
+            actual = invalidProtoDate.toLocalDateOrNullI(),
             message = "Expected an invalid proto date to equate to null after an attempted conversion",
         )
     }
@@ -90,13 +90,13 @@ class ProtoExtensionsTest {
         val javaTimestamp = OffsetDateTime.now()
         assertEquals(
             expected = javaTimestamp,
-            actual = javaTimestamp.toProtoTimestamp().toOffsetDateTime(),
+            actual = javaTimestamp.toProtoTimestampI().toOffsetDateTimeI(),
             message = "Expected the java timestamp to equal itself when going round trip from java to java",
         )
-        val protoTimestamp = OffsetDateTime.now().toProtoTimestamp()
+        val protoTimestamp = OffsetDateTime.now().toProtoTimestampI()
         assertEquals(
             expected = protoTimestamp,
-            actual = protoTimestamp.toOffsetDateTime().toProtoTimestamp(),
+            actual = protoTimestamp.toOffsetDateTimeI().toProtoTimestampI(),
             message = "Expected the proto timestamp to equal itself after a round trip from proto to proto"
         )
     }
@@ -119,30 +119,30 @@ class ProtoExtensionsTest {
             )
             assertEquals(
                 expected = javaBigDecimal.toPlainString(),
-                actual = javaBigDecimal.toProtoDecimal().value,
+                actual = javaBigDecimal.toProtoDecimalI().value,
                 message = "Expected the decimal amount to equate to the plain string version of the BigDecimal",
             )
             assertEquals(
                 expected = javaBigDecimal,
-                actual = javaBigDecimal.toProtoDecimal().toBigDecimal(),
+                actual = javaBigDecimal.toProtoDecimalI().toBigDecimalI(),
                 message = "Expected the big decimal to survive a round trip",
             )
         }
         sourceValues.map { UtilProtosBuilders.Decimal { value = it } }.forEach { protoDecimal ->
             assertEquals(
                 expected = protoDecimal.value,
-                actual = protoDecimal.toBigDecimal().toPlainString(),
+                actual = protoDecimal.toBigDecimalI().toPlainString(),
                 message = "Expected the value of the proto decimal to equate to the stringified version of the BigDecimal after converting proto -> java",
             )
             assertEquals(
                 expected = protoDecimal,
-                actual = protoDecimal.toBigDecimal().toProtoDecimal(),
+                actual = protoDecimal.toBigDecimalI().toProtoDecimalI(),
                 message = "Expected the proto decimal to equal itself after a round trip from proto to proto"
             )
         }
         val invalidProtoDecimal = UtilProtosBuilders.Decimal { value = "This ain't no decimal" }
         assertNull(
-            actual = invalidProtoDecimal.toBigDecimalOrNull(),
+            actual = invalidProtoDecimal.toBigDecimalOrNullI(),
             message = "Expected an invalid proto decimal to equate to null after an attempted conversion",
         )
     }

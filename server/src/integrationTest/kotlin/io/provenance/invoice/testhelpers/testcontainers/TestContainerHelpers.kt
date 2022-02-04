@@ -4,17 +4,17 @@ import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpResponse
 import org.mockserver.model.HttpResponse.response
 import io.provenance.invoice.config.app.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
-import io.provenance.invoice.util.extension.checkNotNull
+import io.provenance.invoice.util.extension.checkNotNullI
 
 data class SimpleMockResponse(val msg: String)
 
 fun HttpRequest.headerValue(headerName: String): String = headers
     .entries
     .singleOrNull { it.name.value == headerName }
-    .checkNotNull { "No single header with name [$headerName] was present in the request to [${this.path.value}]" }
+    .checkNotNullI { "No single header with name [$headerName] was present in the request to [${this.path.value}]" }
     .values
     .singleOrNull()
-    .checkNotNull { "Request header [$headerName] did not point to a single value" }
+    .checkNotNullI { "Request header [$headerName] did not point to a single value" }
     .value
 
 fun HttpRequest.headerValueOrNull(headerName: String): String? =

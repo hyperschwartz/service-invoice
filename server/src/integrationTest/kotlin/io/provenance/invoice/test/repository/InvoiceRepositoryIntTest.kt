@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.testhelpers.IntTestBase
 import io.provenance.invoice.util.enums.InvoiceStatus
-import io.provenance.invoice.util.extension.toUuid
+import io.provenance.invoice.util.extension.toUuidI
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -29,13 +29,13 @@ class InvoiceRepositoryIntTest : IntTestBase() {
             actual = insertedInvoice.invoice,
             message = "The responding value from an upsert should be the unmodified input",
         )
-        val foundInvoice = invoiceRepository.findByUuidOrNull(invoice.invoiceUuid.toUuid())
+        val foundInvoice = invoiceRepository.findByUuidOrNull(invoice.invoiceUuid.toUuidI())
         assertEquals(
             expected = invoice,
             actual = foundInvoice,
             message = "Expected the invoice to be located by its uuid in the database",
         )
-        val foundInvoiceExceptional = invoiceRepository.findByUuid(invoice.invoiceUuid.toUuid())
+        val foundInvoiceExceptional = invoiceRepository.findByUuid(invoice.invoiceUuid.toUuidI())
         assertEquals(
             expected = invoice,
             actual = foundInvoiceExceptional,
@@ -56,32 +56,32 @@ class InvoiceRepositoryIntTest : IntTestBase() {
         )
         insertInvoice(firstInvoice)
         insertInvoice(secondInvoice)
-        val foundBySender = invoiceRepository.findAllByFromAddress(fromAddress).map { it.invoiceUuid.toUuid() }
+        val foundBySender = invoiceRepository.findAllByFromAddress(fromAddress).map { it.invoiceUuid.toUuidI() }
         assertEquals(
             expected = 2,
             actual = foundBySender.size,
             message = "Both invoices should be found by the sender address",
         )
         assertTrue(
-            actual = firstInvoice.invoiceUuid.toUuid() in foundBySender,
+            actual = firstInvoice.invoiceUuid.toUuidI() in foundBySender,
             message = "The first invoice should be present in the response list for the sender",
         )
         assertTrue(
-            actual = secondInvoice.invoiceUuid.toUuid() in foundBySender,
+            actual = secondInvoice.invoiceUuid.toUuidI() in foundBySender,
             message = "The second invoice should be present in the response list for the sender",
         )
-        val foundByReceiver = invoiceRepository.findAllByToAddress(toAddress).map { it.invoiceUuid.toUuid() }
+        val foundByReceiver = invoiceRepository.findAllByToAddress(toAddress).map { it.invoiceUuid.toUuidI() }
         assertEquals(
             expected = 2,
             actual = foundByReceiver.size,
             message = "Both invoices should be found by the receiver address",
         )
         assertTrue(
-            actual = firstInvoice.invoiceUuid.toUuid() in foundByReceiver,
+            actual = firstInvoice.invoiceUuid.toUuidI() in foundByReceiver,
             message = "The first invoice should be present in the response list for the receiver",
         )
         assertTrue(
-            actual = secondInvoice.invoiceUuid.toUuid() in foundByReceiver,
+            actual = secondInvoice.invoiceUuid.toUuidI() in foundByReceiver,
             message = "The second invoice should be present in the response list for the receiver",
         )
     }

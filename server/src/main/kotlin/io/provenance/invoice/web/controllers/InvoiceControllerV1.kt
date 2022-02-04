@@ -1,9 +1,11 @@
 package io.provenance.invoice.web.controllers
 
 import io.provenance.invoice.InvoiceProtos.Invoice
+import io.provenance.invoice.calculator.InvoiceCalc
 import io.provenance.invoice.config.web.AppHeaders
 import io.provenance.invoice.config.web.AppRoutes
 import io.provenance.invoice.domain.wallet.WalletDetails
+import io.provenance.invoice.factory.InvoiceCalcFactory
 import io.provenance.scope.objectstore.util.base64EncodeString
 import mu.KLogging
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,11 +19,15 @@ import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.services.InvoiceService
 import io.provenance.invoice.services.OnboardInvoiceRequest
 import io.provenance.invoice.services.OnboardInvoiceResponse
+import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.web.bind.annotation.RequestParam
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @RestController
 @RequestMapping("${AppRoutes.V1}/invoices", produces = ["application/json"])
 class InvoiceControllerV1(
+    private val invoiceCalcFactory: InvoiceCalcFactory,
     private val invoiceRepository: InvoiceRepository,
     private val invoiceService: InvoiceService,
 ) {
@@ -47,5 +53,11 @@ class InvoiceControllerV1(
 
     @GetMapping("/address/to/{toAddress}")
     fun getByToAddress(@PathVariable toAddress: String): List<ByteArray> = invoiceRepository.findAllByToAddress(toAddress).map { it.toByteArray() }
+
+    @GetMapping("/calc/{uuid}")
+    fun getCalc(
+        @PathVariable uuid: UUID,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @RequestParam calcTime: OffsetDateTime?,
+    ): InvoiceCalc = invoiceCalcFactory.generate(invoiceUuid = uuid, calcTime = calcTime ?: OffsetDateTime.now())
 }
 

@@ -11,7 +11,7 @@ import org.jetbrains.exposed.sql.select
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.exposed.offsetDatetime
 import io.provenance.invoice.util.exposed.proto
-import io.provenance.invoice.util.extension.toUuid
+import io.provenance.invoice.util.extension.toUuidI
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -38,10 +38,10 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
         writeSessionRequest: MsgWriteSessionRequest,
         writeRecordRequest: MsgWriteRecordRequest,
         created: OffsetDateTime = OffsetDateTime.now()
-    ): InvoiceRecord = findById(invoice.invoiceUuid.toUuid())
-        ?.also { throw ResourceNotFoundException("Invoice [${invoice.invoiceUuid.value}] already exists in the database") }
+    ): InvoiceRecord = findById(invoice.invoiceUuid.toUuidI())
+        ?.also { throw IllegalStateException("Invoice [${invoice.invoiceUuid.value}] already exists in the database") }
         .run {
-            new(invoice.invoiceUuid.toUuid()) {
+            new(invoice.invoiceUuid.toUuidI()) {
                 this.data = invoice
                 this.fromAddress = invoice.fromAddress
                 this.toAddress = invoice.toAddress
@@ -96,7 +96,7 @@ class InvoiceRecord(uuid: EntityID<UUID>) : UUIDEntity(uuid) {
     var updatedTime: OffsetDateTime? by InvoiceTable.updatedTime
 
     val invoice: Invoice by lazy { data }
-    val invoiceUuid: UUID by lazy { invoice.invoiceUuid.toUuid() }
+    val invoiceUuid: UUID by lazy { invoice.invoiceUuid.toUuidI() }
     val processingStatus: InvoiceStatus by lazy { InvoiceStatus.valueOf(status) }
 
     fun toDto(): InvoiceDto = InvoiceDto.fromRecord(this)
@@ -109,7 +109,7 @@ sealed interface InvoiceUpdateQueryParam {
         override fun invoiceUuid(): UUID = uuid
     }
     class InvoiceProto(val proto: Invoice): InvoiceUpdateQueryParam {
-        private val uuid: UUID by lazy { proto.invoiceUuid.toUuid() }
+        private val uuid: UUID by lazy { proto.invoiceUuid.toUuidI() }
 
         override fun invoiceUuid(): UUID = uuid
     }

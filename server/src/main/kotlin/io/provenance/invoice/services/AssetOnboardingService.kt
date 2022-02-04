@@ -2,6 +2,7 @@ package io.provenance.invoice.services
 
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.clients.OnboardingApiClient
+import io.provenance.invoice.config.app.Qualifiers
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -9,11 +10,13 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import io.provenance.invoice.config.provenance.ProvenanceProperties
 import io.provenance.invoice.domain.wallet.WalletDetails
+import io.provenance.invoice.util.provenance.ProvenanceAccountDetail
+import org.springframework.beans.factory.annotation.Qualifier
 
 @Service
 class AssetOnboardingService(
     private val onboardingApi: OnboardingApiClient,
-    private val provenanceProperties: ProvenanceProperties,
+    @Qualifier(Qualifiers.ORACLE_ACCOUNT_DETAIL) private val oracleAccountDetail: ProvenanceAccountDetail,
 ) {
     private companion object : KLogging()
 
@@ -28,7 +31,7 @@ class AssetOnboardingService(
         // this application) can query object store for the asset, allowing us to validate the invoice
         return onboardingApi.generateOnboarding(
             address = walletDetails.address,
-            publicKey = provenanceProperties.oraclePublicKeyEncoded,
+            publicKey = oracleAccountDetail.encodedPublicKey,
             asset = asset,
         ).let { onboardingResponse ->
             AssetOnboardingResponse(

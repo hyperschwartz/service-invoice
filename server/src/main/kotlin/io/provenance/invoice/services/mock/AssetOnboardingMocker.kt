@@ -6,10 +6,9 @@ import com.google.common.io.BaseEncoding
 import cosmos.tx.v1beta1.TxOuterClass.TxBody
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.clients.OnboardingResponse
-import io.provenance.invoice.util.extension.toJsonProvenance
-import io.provenance.invoice.util.extension.toProtoAny
-import io.provenance.invoice.util.extension.toUuid
-import io.provenance.invoice.util.extension.parseUuid
+import io.provenance.invoice.util.extension.toJsonProvenanceI
+import io.provenance.invoice.util.extension.toProtoAnyI
+import io.provenance.invoice.util.extension.toUuidI
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -38,8 +37,8 @@ import java.util.UUID
  * Code is a hack to somewhat replicate the responses that service-asset-onboarding returns, without using object store.
  */
 object AssetOnboardingMocker {
-    private val SCOPE_SPEC_UUID = "551b5eca-921d-4ba7-aded-3966b224f44b".parseUuid()
-    private val CONTRACT_SPEC_UUID = "f97ecc5d-c580-478d-be02-6c1b0c32235f".parseUuid()
+    private val SCOPE_SPEC_UUID = "551b5eca-921d-4ba7-aded-3966b224f44b".toUuidI()
+    private val CONTRACT_SPEC_UUID = "f97ecc5d-c580-478d-be02-6c1b0c32235f".toUuidI()
     private const val RECORD_SPEC_NAME = "Asset"
     private val ASSET_SPEC_INPUT = RecordInputSpec(
         name = "AssetHash",
@@ -65,9 +64,9 @@ object AssetOnboardingMocker {
     ): OnboardingResponse {
         val decodedPublicKey = ECUtils.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKey))
         val hash = hashAsset(asset, decodedPublicKey)
-        val txBody = buildTxBody(asset.id.toUuid(), hash, address)
+        val txBody = buildTxBody(asset.id.toUuidI(), hash, address)
         return OnboardingResponse(
-            json = ObjectMapper().readValue(txBody.toJsonProvenance()),
+            json = ObjectMapper().readValue(txBody.toJsonProvenanceI()),
             base64 = txBody.messagesList.map { it.toByteArray().toBase64String() },
         )
     }
@@ -112,7 +111,7 @@ object AssetOnboardingMocker {
                     scopeBuilder.addAllDataAccess(audiences)
                 }
                 msgBuilder.addSigners(address)
-            }.build().toProtoAny(),
+            }.build().toProtoAnyI(),
             // Write session request to serve the tx
             MsgWriteSessionRequest.newBuilder().also { msgBuilder ->
                 msgBuilder.sessionIdComponentsBuilder.also { componentsBuilder ->
@@ -127,7 +126,7 @@ object AssetOnboardingMocker {
                     sessionBuilder.auditBuilder.updatedBy = address
                 }
                 msgBuilder.addSigners(address)
-            }.build().toProtoAny(),
+            }.build().toProtoAnyI(),
             // Write record address to mint the asset
             MsgWriteRecordRequest.newBuilder().also { msgBuilder ->
                 msgBuilder.contractSpecUuid = CONTRACT_SPEC_UUID.toString()
@@ -152,7 +151,7 @@ object AssetOnboardingMocker {
                     }
                 }
                 msgBuilder.addSigners(address)
-            }.build().toProtoAny()
+            }.build().toProtoAnyI()
         )
         return TxBody.newBuilder().addAllMessages(messages).build()
     }

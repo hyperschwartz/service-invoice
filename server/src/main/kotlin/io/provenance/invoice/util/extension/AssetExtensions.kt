@@ -12,39 +12,41 @@ import io.provenance.invoice.AssetProtosBuilders
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.InvoiceOrBuilder
 import io.provenance.invoice.UtilProtos
-import io.provenance.invoice.util.randomProtoUuid
+import io.provenance.invoice.util.randomProtoUuidI
 import java.math.BigDecimal
 
-fun AssetType.provenanceName(): String = this.getExtensionValue(AssetProtos.provenanceName)
+fun AssetType.provenanceNameI(): String = this.getExtensionValue(AssetProtos.provenanceName)
 
-fun AssetType.assetKvName(): String = this.getExtensionValue(AssetProtos.assetKvName)
+fun AssetType.assetKvNameI(): String = this.getExtensionValue(AssetProtos.assetKvName)
 
-fun InvoiceOrBuilder.toAsset(): Asset = this.toAsset(
+fun InvoiceOrBuilder.toAssetI(): Asset = this.toAssetI(
     assetType = AssetType.NFT,
-    assetDescription = "${AssetType.NFT.provenanceName()} [${this.invoiceUuid.value}]",
+    assetDescription = "${AssetType.NFT.provenanceNameI()} [${this.invoiceUuid.value}]",
     idProvider = { invoiceUuid },
 )
 
-fun AssetOrBuilder.unpackInvoice(): Invoice = this
-    .check({ it.type == AssetType.NFT.name }) { "Cannot unpack invoice from asset. Expected invoice to be properly typed as [${AssetType.NFT.name}] but type was [$type]" }
-    .kvMap[AssetType.NFT.assetKvName()]
-    .checkNotNull { "Expected the NFT to be serialized into the KV map of the asset under its KV name of [${AssetType.NFT.assetKvName()}]" }
+fun InvoiceOrBuilder.totalAmountI(): BigDecimal = lineItemsList.sumOf { it.quantity.toBigDecimal() * it.price.toBigDecimalOrZeroI() }
+
+fun AssetOrBuilder.unpackInvoiceI(): Invoice = this
+    .checkI({ it.type == AssetType.NFT.name }) { "Cannot unpack invoice from asset. Expected invoice to be properly typed as [${AssetType.NFT.name}] but type was [$type]" }
+    .kvMap[AssetType.NFT.assetKvNameI()]
+    .checkNotNullI { "Expected the NFT to be serialized into the KV map of the asset under its KV name of [${AssetType.NFT.assetKvNameI()}]" }
     .unpack(Invoice::class.java)
 
-private fun <T: MessageOrBuilder> T.toAsset(
+private fun <T: MessageOrBuilder> T.toAssetI(
     assetType: AssetType,
-    assetDescription: String = assetType.provenanceName(),
-    idProvider: (T) -> UtilProtos.UUID = { randomProtoUuid() },
+    assetDescription: String = assetType.provenanceNameI(),
+    idProvider: (T) -> UtilProtos.UUID = { randomProtoUuidI() },
 ): Asset = this.let { message ->
     AssetProtosBuilders.Asset {
         id = idProvider.invoke(message)
         type = assetType.name
         description = assetDescription
-        putKv(assetType.assetKvName(), message.toProtoAny())
+        putKv(assetType.assetKvNameI(), message.toProtoAnyI())
     }
 }
 
 private fun <T: ProtocolMessageEnum, U: Any> T.getExtensionValue(extension: GeneratedExtension<EnumValueOptions, U>): U =
     this.valueDescriptor.options.getExtension(extension)
 
-fun InvoiceOrBuilder.totalAmount(): BigDecimal = lineItemsList.sumOf { it.quantity.toBigDecimal() * it.price.toBigDecimalOrZero() }
+

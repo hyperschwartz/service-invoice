@@ -1,7 +1,7 @@
 package io.provenance.invoice.config.web
 
 import io.provenance.invoice.config.logging.MDCKeys
-import io.provenance.invoice.util.extension.toOffsetDateTimeOrNull
+import io.provenance.invoice.util.extension.toOffsetDateTimeOrNullI
 import mu.KLogging
 import org.slf4j.MDC
 import org.springframework.web.servlet.HandlerInterceptor
@@ -43,7 +43,7 @@ class WebRequestLoggingInterceptor : HandlerInterceptor {
         ex: Exception?,
     ) {
         // If MDC request time exists on an executed request, log the amount of time the route took
-        MDC.get(MDCKeys.REQUEST_STARTED.key)?.toOffsetDateTimeOrNull()?.toInstant()?.toEpochMilli()?.let { startTimeMillis ->
+        MDC.get(MDCKeys.REQUEST_STARTED.key)?.toOffsetDateTimeOrNullI()?.toInstant()?.toEpochMilli()?.let { startTimeMillis ->
             logger.info("END request [${request.requestURL}] | Took ${System.currentTimeMillis() - startTimeMillis}ms")
         }
     }

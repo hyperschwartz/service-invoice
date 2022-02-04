@@ -1,13 +1,14 @@
 package io.provenance.invoice.config.provenance
 
 import io.provenance.client.PbClient
-import io.provenance.scope.encryption.model.DirectKeyRef
-import io.provenance.scope.encryption.model.KeyRef
+import io.provenance.invoice.config.app.Qualifiers
+import io.provenance.invoice.config.app.ServiceProperties
+import io.provenance.invoice.util.provenance.ProvenanceAccountDetail
 import io.provenance.scope.objectstore.client.OsClient
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.security.KeyPair
 
 @Configuration
 @EnableConfigurationProperties(value = [ProvenanceProperties::class])
@@ -18,19 +19,26 @@ class ProvenanceConfig {
         channelUri = provenanceProperties.channelUri,
     )
 
+    @Bean(Qualifiers.ORACLE_ACCOUNT_DETAIL)
+    fun oracleAccountDetail(
+        provenanceProperties: ProvenanceProperties,
+        serviceProperties: ServiceProperties
+    ): ProvenanceAccountDetail = ProvenanceAccountDetail.fromBase64PrivateKey(
+        privateKeyEncoded = provenanceProperties.oraclePrivateKeyEncoded,
+        mainNet = serviceProperties.environment == "prod",
+    )
+
     @Bean
-    fun objectStore(provenanceProperties: ProvenanceProperties): ObjectStore = ObjectStore(
+    fun objectStore(
+        provenanceProperties: ProvenanceProperties,
+        @Qualifier(Qualifiers.ORACLE_ACCOUNT_DETAIL) oracleAccountDetail: ProvenanceAccountDetail,
+    ): ObjectStore = ObjectStore(
         osClient = OsClient(
             uri = provenanceProperties.objectStoreUri,
             deadlineMs = provenanceProperties.objectStoreTimeoutMs,
         ),
-        oracleCredentials = provenanceProperties.oracleKeyPair,
+        oracleAccountDetail = oracleAccountDetail,
     )
 }
 
-data class ObjectStore(
-    val osClient: OsClient,
-    val oracleCredentials: KeyPair,
-) {
-    val keyRef: KeyRef by lazy { DirectKeyRef(oracleCredentials) }
-}
+data class ObjectStore(val osClient: OsClient, val oracleAccountDetail: ProvenanceAccountDetail)

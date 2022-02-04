@@ -6,10 +6,9 @@ import io.provenance.invoice.domain.wallet.WalletDetails
 import io.provenance.invoice.services.InvoiceService
 import io.provenance.invoice.services.OnboardInvoiceRequest
 import io.provenance.invoice.testhelpers.IntTestBase
-import io.provenance.invoice.util.extension.toProtoAny
-import io.provenance.invoice.util.extension.toUuid
-import io.provenance.invoice.util.extension.parseUuid
-import io.provenance.invoice.util.extension.typedUnpack
+import io.provenance.invoice.util.extension.toProtoAnyI
+import io.provenance.invoice.util.extension.toUuidI
+import io.provenance.invoice.util.extension.typedUnpackI
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -39,13 +38,13 @@ class InvoiceServiceTest : IntTestBase() {
             message = "Expected the output invoice to be identical to the input invoice",
         )
         assertEquals(
-            expected = invoice.invoiceUuid.toUuid(),
+            expected = invoice.invoiceUuid.toUuidI(),
             actual = response.payablesContractExecutionDetail.payableUuid,
             message = "The invoice's uuid should be sent in the response as the payable uuid",
         )
         assertEquals(
-            expected = response.scopeGenerationDetail.writeScopeRequest.typedUnpack<MsgWriteScopeRequest>().scopeUuid.let { scopeUuid ->
-                MetadataAddress.forScope(scopeUuid.parseUuid()).toString()
+            expected = response.scopeGenerationDetail.writeScopeRequest.typedUnpackI<MsgWriteScopeRequest>().scopeUuid.let { scopeUuid ->
+                MetadataAddress.forScope(scopeUuid.toUuidI()).toString()
             },
             actual = response.payablesContractExecutionDetail.scopeId,
             message = "Expected the scope id to be derived from the write scope request",
@@ -61,17 +60,17 @@ class InvoiceServiceTest : IntTestBase() {
             message = "Expected the invoice total to be the default value from the MockProtoUtil",
         )
         assertEquals(
-            expected = MsgWriteScopeRequest.getDefaultInstance().toProtoAny().typeUrl,
+            expected = MsgWriteScopeRequest.getDefaultInstance().toProtoAnyI().typeUrl,
             actual = response.scopeGenerationDetail.writeScopeRequest.typeUrl,
             message = "Expected the write scope request to be the correct type",
         )
         assertEquals(
-            expected = MsgWriteSessionRequest.getDefaultInstance().toProtoAny().typeUrl,
+            expected = MsgWriteSessionRequest.getDefaultInstance().toProtoAnyI().typeUrl,
             actual = response.scopeGenerationDetail.writeSessionRequest.typeUrl,
             message = "Expected the write session request to be the correct type",
         )
         assertEquals(
-            expected = MsgWriteRecordRequest.getDefaultInstance().toProtoAny().typeUrl,
+            expected = MsgWriteRecordRequest.getDefaultInstance().toProtoAnyI().typeUrl,
             actual = response.scopeGenerationDetail.writeRecordRequest.typeUrl,
             message = "Expected the write record request to be the correct type",
         )

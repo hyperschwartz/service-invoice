@@ -32,72 +32,72 @@ import kotlin.reflect.full.functions
 //
 // UUID
 //
-fun UUID.toProtoUuid(): UtilProtos.UUID = UtilProtos.UUID.newBuilder().setValue(this.toString()).build()
-fun String.toProtoUuid(): UtilProtos.UUID = UUID.fromString(this).toProtoUuid()
-fun UtilProtos.UUIDOrBuilder.toUuid(): UUID = UUID.fromString(this.value)
-fun UtilProtos.UUIDOrBuilder.toUuidOrNull(): UUID? = tryOrNull { toUuid() }
+fun UUID.toProtoUuidI(): UtilProtos.UUID = UtilProtos.UUID.newBuilder().setValue(this.toString()).build()
+fun String.toProtoUuidI(): UtilProtos.UUID = UUID.fromString(this).toProtoUuidI()
+fun UtilProtos.UUIDOrBuilder.toUuidI(): UUID = UUID.fromString(this.value)
+fun UtilProtos.UUIDOrBuilder.toUuidOrNullI(): UUID? = tryOrNullI { toUuidI() }
 
 //
 // Date
 //
-fun LocalDate.toProtoDate(): Date = Date.newBuilder().setValue(this.toString()).build()
-fun DateOrBuilder.toLocalDate(): LocalDate = LocalDate.parse(this.value)
-fun DateOrBuilder.toLocalDateOrNull(): LocalDate? = tryOrNull { toLocalDate() }
+fun LocalDate.toProtoDateI(): Date = Date.newBuilder().setValue(this.toString()).build()
+fun DateOrBuilder.toLocalDateI(): LocalDate = LocalDate.parse(this.value)
+fun DateOrBuilder.toLocalDateOrNullI(): LocalDate? = tryOrNullI { toLocalDateI() }
 
 //
 // Timestamp
 //
-fun OffsetDateTime.toProtoTimestamp(): Timestamp = this.toInstant().flowTo(Timestamp.newBuilder()) { instant, builder ->
+fun OffsetDateTime.toProtoTimestampI(): Timestamp = this.toInstant().flowToI(Timestamp.newBuilder()) { instant, builder ->
     builder.seconds = instant.epochSecond.coerceAtLeast(Timestamps.MIN_VALUE.seconds).coerceAtMost(Timestamps.MAX_VALUE.seconds)
     builder.nanos = instant.nano.coerceAtLeast(Timestamps.MIN_VALUE.nanos).coerceAtMost(Timestamps.MAX_VALUE.nanos)
     builder.build()
 }
-fun TimestampOrBuilder.toOffsetDateTime(): OffsetDateTime = Instant.ofEpochSecond(seconds, nanos.toLong())
+fun TimestampOrBuilder.toOffsetDateTimeI(): OffsetDateTime = Instant.ofEpochSecond(seconds, nanos.toLong())
     .let { instant -> OffsetDateTime.ofInstant(instant, ZoneId.systemDefault()) }
-fun TimestampOrBuilder.toOffsetDateTimeOrNull(): OffsetDateTime? = tryOrNull { toOffsetDateTime() }
+fun TimestampOrBuilder.toOffsetDateTimeOrNullI(): OffsetDateTime? = tryOrNullI { toOffsetDateTimeI() }
 
 //
 // Decimal
 //
-fun BigDecimal.toProtoDecimal(): Decimal = Decimal.newBuilder().setValue(this.toPlainString()).build()
-fun String.toProtoDecimal(): Decimal = this.toBigDecimal().toProtoDecimal()
-fun String.toProtoDecimalOrNull(): Decimal? = this.toBigDecimalOrNull()?.toProtoDecimal()
-fun DecimalOrBuilder.toBigDecimal(): BigDecimal = BigDecimal(this.value)
-fun DecimalOrBuilder.toBigDecimalOrNull(): BigDecimal? = tryOrNull { toBigDecimal() }
-fun DecimalOrBuilder.toBigDecimalOrZero(): BigDecimal = toBigDecimalOrNull() ?: BigDecimal.ZERO
+fun BigDecimal.toProtoDecimalI(): Decimal = Decimal.newBuilder().setValue(this.toPlainString()).build()
+fun String.toProtoDecimalI(): Decimal = this.toBigDecimal().toProtoDecimalI()
+fun String.toProtoDecimalOrNullI(): Decimal? = this.toBigDecimalOrNull()?.toProtoDecimalI()
+fun DecimalOrBuilder.toBigDecimalI(): BigDecimal = BigDecimal(this.value)
+fun DecimalOrBuilder.toBigDecimalOrNullI(): BigDecimal? = tryOrNullI { toBigDecimalI() }
+fun DecimalOrBuilder.toBigDecimalOrZeroI(): BigDecimal = toBigDecimalOrNullI() ?: BigDecimal.ZERO
 
 //
 // Any
 //
-fun <T: MessageOrBuilder> T.toProtoAny(): com.google.protobuf.Any = com.google.protobuf.Any.pack(this.buildDynamic(), "")
-fun Boolean.toProtoAny(): com.google.protobuf.Any = BoolValue.newBuilder().setValue(this).build().toProtoAny()
-fun ByteArray.toProtoAny(): com.google.protobuf.Any = BytesValue.newBuilder().setValue(ByteString.copyFrom(this)).build().toProtoAny()
-fun String.toProtoAny(): com.google.protobuf.Any = StringValue.newBuilder().setValue(this).build().toProtoAny()
-fun Long.toProtoAny(): com.google.protobuf.Any = Int64Value.newBuilder().setValue(this).build().toProtoAny()
-fun Int.toProtoAny(): com.google.protobuf.Any = Int32Value.newBuilder().setValue(this).build().toProtoAny()
-fun LocalDate.toProtoAny(): com.google.protobuf.Any = this.toProtoDate().toProtoAny()
-fun BigDecimal.toProtoAny(): com.google.protobuf.Any = this.toProtoDecimal().toProtoAny()
-fun OffsetDateTime.toProtoAny(): com.google.protobuf.Any = this.toProtoTimestamp().toProtoAny()
-fun <T: Any> T.genericToProtoAny(): com.google.protobuf.Any = when (this) {
-    is Message -> toProtoAny()
-    is Boolean -> toProtoAny()
-    is ByteArray -> toProtoAny()
-    is String -> toProtoAny()
-    is Long -> toProtoAny()
-    is Int -> toProtoAny()
-    is LocalDate -> toProtoAny()
-    is BigDecimal -> toProtoAny()
-    is OffsetDateTime -> toProtoAny()
+fun <T: MessageOrBuilder> T.toProtoAnyI(): com.google.protobuf.Any = com.google.protobuf.Any.pack(this.buildDynamicI(), "")
+fun Boolean.toProtoAnyI(): com.google.protobuf.Any = BoolValue.newBuilder().setValue(this).build().toProtoAnyI()
+fun ByteArray.toProtoAnyI(): com.google.protobuf.Any = BytesValue.newBuilder().setValue(ByteString.copyFrom(this)).build().toProtoAnyI()
+fun String.toProtoAnyI(): com.google.protobuf.Any = StringValue.newBuilder().setValue(this).build().toProtoAnyI()
+fun Long.toProtoAnyI(): com.google.protobuf.Any = Int64Value.newBuilder().setValue(this).build().toProtoAnyI()
+fun Int.toProtoAnyI(): com.google.protobuf.Any = Int32Value.newBuilder().setValue(this).build().toProtoAnyI()
+fun LocalDate.toProtoAnyI(): com.google.protobuf.Any = this.toProtoDateI().toProtoAnyI()
+fun BigDecimal.toProtoAnyI(): com.google.protobuf.Any = this.toProtoDecimalI().toProtoAnyI()
+fun OffsetDateTime.toProtoAnyI(): com.google.protobuf.Any = this.toProtoTimestampI().toProtoAnyI()
+fun <T: Any> T.genericToProtoAnyI(): com.google.protobuf.Any = when (this) {
+    is Message -> toProtoAnyI()
+    is Boolean -> toProtoAnyI()
+    is ByteArray -> toProtoAnyI()
+    is String -> toProtoAnyI()
+    is Long -> toProtoAnyI()
+    is Int -> toProtoAnyI()
+    is LocalDate -> toProtoAnyI()
+    is BigDecimal -> toProtoAnyI()
+    is OffsetDateTime -> toProtoAnyI()
     else -> throw IllegalArgumentException("Unable to convert value of type [${this::class.qualifiedName}] to proto Any. Specified type is not supported")
 }
-inline fun <reified T: Message> com.google.protobuf.Any.typedUnpack(): T = this.unpack(T::class.java)
+inline fun <reified T: Message> com.google.protobuf.Any.typedUnpackI(): T = this.unpack(T::class.java)
 
 //
 // Generic
 //
 fun <T: MessageOrBuilder> T.isSet(): Boolean = this != this.defaultInstanceForType
 
-inline fun <reified T: Message> MessageOrBuilder.buildDynamic(): T = try {
+inline fun <reified T: Message> MessageOrBuilder.buildDynamicI(): T = try {
     if (this is Message.Builder) {
         this.build() as T
     } else {
@@ -107,7 +107,7 @@ inline fun <reified T: Message> MessageOrBuilder.buildDynamic(): T = try {
     throw IllegalArgumentException("Failed to build Message type [${this::class.qualifiedName}]", e)
 }
 
-inline fun <reified T: Message.Builder> MessageOrBuilder.toBuilderDynamic(): T = try {
+inline fun <reified T: Message.Builder> MessageOrBuilder.toBuilderDynamicI(): T = try {
     if (this is Message) {
         this.toBuilder() as T
     } else {
@@ -122,15 +122,15 @@ inline fun <reified T: Message.Builder> MessageOrBuilder.toBuilderDynamic(): T =
  * Note: This is practically guaranteed to be a slow invocation, so using this is a guaranteed performance hit.
  */
 @Suppress("UNCHECKED_CAST")
-fun <T: Message> KClass<T>.deriveDefaultInstance(): T = this
+fun <T: Message> KClass<T>.deriveDefaultInstanceI(): T = this
     .functions
     .singleOrNull { it.name == "getDefaultInstance" }
-    .checkNotNull { "Could not resolve static default getDefaultInstance function for protobuf Message class ${this.qualifiedName}" }
+    .checkNotNullI { "Could not resolve static default getDefaultInstance function for protobuf Message class ${this.qualifiedName}" }
     .call()
     .let { it as? T }
-    .checkNotNull { "Unable to cast default instance of class [${this.qualifiedName}] to a usable format" }
+    .checkNotNullI { "Unable to cast default instance of class [${this.qualifiedName}] to a usable format" }
 
-inline fun <reified T: Message.Builder> T.mergeFromJson(json: String, registry: TypeRegistry? = null): T = this.also { messageBuilder ->
+inline fun <reified T: Message.Builder> T.mergeFromJsonI(json: String, registry: TypeRegistry? = null): T = this.also { messageBuilder ->
     try {
         JsonFormat.parser()
             .let { parser -> registry?.let(parser::usingTypeRegistry) ?: parser }
@@ -140,16 +140,16 @@ inline fun <reified T: Message.Builder> T.mergeFromJson(json: String, registry: 
     }
 }
 
-inline fun <reified T: Message.Builder> T.mergeFromJson(json: ObjectNode, registry: TypeRegistry? = null): T =
-    mergeFromJson(json.toString(), registry)
+inline fun <reified T: Message.Builder> T.mergeFromJsonI(json: ObjectNode, registry: TypeRegistry? = null): T =
+    mergeFromJsonI(json.toString(), registry)
 
-inline fun <reified T: Message.Builder> T.mergeFromJsonProvenance(json: String): T =
-    mergeFromJson(json, DEFAULT_PROVENANCE_TYPE_REGISTRY)
+inline fun <reified T: Message.Builder> T.mergeFromJsonProvenanceI(json: String): T =
+    mergeFromJsonI(json, DEFAULT_PROVENANCE_TYPE_REGISTRY)
 
-inline fun <reified T: Message.Builder> T.mergeFromJsonProvenance(json: ObjectNode): T =
-    mergeFromJsonProvenance(json.toString())
+inline fun <reified T: Message.Builder> T.mergeFromJsonProvenanceI(json: ObjectNode): T =
+    mergeFromJsonProvenanceI(json.toString())
 
-inline fun <reified T: Message> T.toJsonProvenance(): String = JsonFormat
+inline fun <reified T: Message> T.toJsonProvenanceI(): String = JsonFormat
     .printer()
     .usingTypeRegistry(DEFAULT_PROVENANCE_TYPE_REGISTRY)
     .print(this)

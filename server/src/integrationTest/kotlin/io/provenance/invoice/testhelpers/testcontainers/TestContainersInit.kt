@@ -16,7 +16,13 @@ import java.util.UUID
  * TODO: Add a test container for simulating responses from service-asset-onboarding.
  */
 class TestContainersInit : ApplicationContextInitializer<ConfigurableApplicationContext> {
-    private companion object : KLogging()
+    private companion object : KLogging() {
+        private val DEFAULT_PROPERTIES: Set<String> = setOf(
+            // Turning the event stream on in an integration test environment makes no sense.
+            // Each individual event stream event should instead be tested alone
+            "event.stream.enabled=false",
+        )
+    }
 
     override fun initialize(applicationContext: ConfigurableApplicationContext) {
         if ("test-containers" !in applicationContext.environment.activeProfiles) {
@@ -30,6 +36,7 @@ class TestContainersInit : ApplicationContextInitializer<ConfigurableApplication
 
         listOf(
             MockPostgreSQLContainer(),
+            MockRedisContainer(),
             MockAssetOnboardingServiceContainer(),
         ).forEach { containerTemplate ->
             logger.info("Building container with name [${containerTemplate.containerName}]")
@@ -41,6 +48,9 @@ class TestContainersInit : ApplicationContextInitializer<ConfigurableApplication
             logger.info("Deriving test properties from container [${containerTemplate.containerName}]")
             testProperties += containerTemplate.getTestProperties(container)
         }
+
+        // Register all non-container-related properties
+        testProperties += DEFAULT_PROPERTIES
 
         // Load in all properties derived by creating all containers
         TestPropertyValues.of(*testProperties.toTypedArray()).applyTo(applicationContext.environment)
