@@ -7,6 +7,7 @@ import io.provenance.scope.util.MetadataAddress
 import mu.KLogging
 import org.springframework.stereotype.Service
 import io.provenance.invoice.repository.InvoiceRepository
+import io.provenance.invoice.util.enums.ExpectedPayableType
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.extension.scopeIdI
 import io.provenance.invoice.util.extension.toAssetI
@@ -47,6 +48,7 @@ class InvoiceService(
         return OnboardInvoiceResponse(
             invoice = upsertedInvoice.invoice,
             payablesContractExecutionDetail = PayablesContractExecutionDetail(
+                payableType = ExpectedPayableType.INVOICE.contractName,
                 payableUuid = upsertedInvoice.uuid,
                 scopeId = assetOnboardingResponse.writeScopeRequest.scopeIdI(),
                 invoiceTotal = upsertedInvoice.totalOwed,
@@ -75,6 +77,7 @@ data class OnboardInvoiceResponse(
 )
 
 data class PayablesContractExecutionDetail(
+    val payableType: String,
     val payableUuid: UUID,
     val scopeId: String,
     val invoiceDenom: String,
