@@ -18,7 +18,6 @@ enum class PayableContractKey(val contractName: String, val isEventKey: Boolean)
     TOTAL_REMAINING("payable_total_remaining", false),
     PAYER("payable_payer", false),
     PAYEE("payable_payee", false),
-    PAYMENT_TIME("payable_payment_time", false),
 
     // All these keys are globally shared and appear on all payable contract events
     PAYABLE_UUID("payable_uuid", false),

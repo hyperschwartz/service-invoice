@@ -191,22 +191,17 @@ class EventHandlerService(
             logger.info("$logPrefix Skipping duplicate payment from event hash [${event.streamEvent.txHash}]")
             return
         }
-        val paymentTime = event.streamEvent.attributeValueI<OffsetDateTime>(PayableContractKey.PAYMENT_TIME)
-        if (calc.payments.any { it.effectiveTime == paymentTime }) {
-            logger.warn("$logPrefix Skipping duplicate payment for time [$paymentTime] received. Ignoring duplicate request")
-            return
-        }
         if (calc.invoiceStatus !in INVOICE_STATUSES_ALLOWED_FOR_PAYMENT) {
             logger.error("$logPrefix Payment received for invoice with status [${calc.invoiceStatus}]. This is a bug. Please investigate")
         }
         if (calc.isPaidOff) {
             logger.error("$logPrefix Payment received for paid off invoice [${calc.uuid}]")
         }
-        logger.info("$logPrefix Storing new received payment for time [$paymentTime]")
+        logger.info("$logPrefix Storing new received payment in the db")
         paymentRepository.insert(
             paymentUuid = paymentUuid,
             invoiceUuid = event.invoiceUuid,
-            paymentTime = paymentTime,
+            paymentTime = OffsetDateTime.now(),
             fromAddress = event.streamEvent.attributeValueI(PayableContractKey.PAYER),
             toAddress = event.streamEvent.attributeValueI(PayableContractKey.PAYEE),
             paymentAmount = event.streamEvent.attributeValueI(PayableContractKey.PAYMENT_AMOUNT),
