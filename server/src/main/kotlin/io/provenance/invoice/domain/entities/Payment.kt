@@ -12,7 +12,6 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 object PaymentTable : UUIDTable(columnName = "payment_uuid", name = "payment") {
-    val paymentUuid = uuid(name = "payment_uuid")
     val invoiceUuid = uuid(name = "invoice_uuid").references(InvoiceTable.id)
     val paymentTime = offsetDatetime(name = "payment_time")
     val fromAddress = text(name = "from_address")
@@ -51,7 +50,7 @@ open class PaymentEntityClass(paymentTable: PaymentTable): UUIDEntityClass<Payme
 class PaymentRecord(uuid: EntityID<UUID>) : UUIDEntity(uuid) {
     companion object : PaymentEntityClass(PaymentTable)
 
-    val paymentUuid: UUID by PaymentTable.paymentUuid
+    // Column setters
     var invoiceUuid: UUID by PaymentTable.invoiceUuid
     var paymentTime: OffsetDateTime by PaymentTable.paymentTime
     var fromAddress: String by PaymentTable.fromAddress
@@ -59,6 +58,9 @@ class PaymentRecord(uuid: EntityID<UUID>) : UUIDEntity(uuid) {
     var paymentAmount: BigDecimal by PaymentTable.paymentAmount
     var createdTime: OffsetDateTime by PaymentTable.createdTime
     var updatedTime: OffsetDateTime? by PaymentTable.updatedTime
+
+    // Derived values
+    val paymentUuid: UUID = this.id.value
 
     fun toDto(): PaymentDto = PaymentDto.fromRecord(this)
 }

@@ -27,12 +27,12 @@ class InvoiceCalculator(
     private val dueDate: LocalDate = invoiceDto.invoice.invoiceDueDate.toLocalDateI()
 
     private fun genCalc(): InvoiceCalc {
-        val applicablePayments = payments.filter { it.effectiveTime.isBeforeInclusiveI(calcTime) }
+        val applicablePayments = payments.filter { it.effectiveTime.isBeforeInclusiveI(calcTime) }.sortedBy { it.effectiveTime }
         var payoffTime: OffsetDateTime? = null
         var currentOwed = invoiceDto.totalOwed
         val paymentCalcs = applicablePayments.map { paymentDto ->
             genPaymentCalc(currentOwed = currentOwed, payment = paymentDto).also { calc ->
-                currentOwed -= calc.owedAfterPayment
+                currentOwed = calc.owedAfterPayment
                 if (currentOwed <= BigDecimal.ZERO) {
                     // Only set payoff time if it hasn't yet been set.  Payments after payoff should not affect this time
                     payoffTime = payoffTime ?: paymentDto.effectiveTime

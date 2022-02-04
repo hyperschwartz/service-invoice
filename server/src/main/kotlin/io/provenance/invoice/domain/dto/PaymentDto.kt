@@ -30,7 +30,7 @@ data class PaymentDto(
         )
 
         fun fromResultRow(resultRow: ResultRow): PaymentDto = PaymentDto(
-            uuid = resultRow[PaymentTable.paymentUuid],
+            uuid = resultRow[PaymentTable.id].value,
             invoiceUuid = resultRow[PaymentTable.invoiceUuid],
             effectiveTime = resultRow[PaymentTable.paymentTime],
             fromAddress = resultRow[PaymentTable.fromAddress],
