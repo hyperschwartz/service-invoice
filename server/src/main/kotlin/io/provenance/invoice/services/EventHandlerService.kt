@@ -181,13 +181,19 @@ class EventHandlerService(
     }
 
     fun handlePaymentMadeEvent(event: IncomingInvoiceEvent) {
-        val paymentUuid = UUID.randomUUID()
+        // Derive the payment uuid from the incoming TX hash.  This will prevent duplicate payments from being
+        // stored from re-running the same event
+        val paymentUuid = UUID.nameUUIDFromBytes(event.streamEvent.txHash.toByteArray())
         val logPrefix = "PAYMENT MADE [Invoice ${event.invoiceUuid} | Payment $paymentUuid]:"
         logger.info("$logPrefix Handling payment made event")
         val calc = invoiceCalcFactory.generate(event.invoiceUuid)
+        if (calc.payments.any { it.uuid == paymentUuid }) {
+            logger.info("$logPrefix Skipping duplicate payment from event hash [${event.streamEvent.txHash}]")
+            return
+        }
         val paymentTime = event.streamEvent.attributeValueI<OffsetDateTime>(PayableContractKey.PAYMENT_TIME)
         if (calc.payments.any { it.effectiveTime == paymentTime }) {
-            logger.warn("$logPrefix Duplicate payment for time [$paymentTime] received. Ignoring duplicate request")
+            logger.warn("$logPrefix Skipping duplicate payment for time [$paymentTime] received. Ignoring duplicate request")
             return
         }
         if (calc.invoiceStatus !in INVOICE_STATUSES_ALLOWED_FOR_PAYMENT) {
