@@ -5,6 +5,7 @@ import io.provenance.invoice.domain.dto.PaymentDto
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.enums.PaymentStatus
 import io.provenance.invoice.util.extension.daysBetweenI
+import io.provenance.invoice.util.extension.elvisI
 import io.provenance.invoice.util.extension.isBeforeInclusiveI
 import io.provenance.invoice.util.extension.toLocalDateI
 import mu.KLogging
@@ -55,7 +56,8 @@ class InvoiceCalculator(
             paymentSum = paymentCalcs.sumOf { it.paymentAmount },
             originalOwed = invoiceDto.totalOwed,
             remainingOwed = currentOwed,
-            paymentDelinquentDays = calcTime.toLocalDate().daysBetweenI(dueDate).coerceAtLeast(0),
+            // Only calculate delinquency up to the payoff time - never continue incrementing if the invoice is paid
+            paymentDelinquentDays = dueDate.daysBetweenI(payoffTime.elvisI { calcTime }.toLocalDate()).coerceAtLeast(0),
             payoffTime = payoffTime,
         )
     }

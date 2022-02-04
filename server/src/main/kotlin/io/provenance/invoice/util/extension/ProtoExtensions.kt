@@ -43,6 +43,8 @@ fun UtilProtos.UUIDOrBuilder.toUuidOrNullI(): UUID? = tryOrNullI { toUuidI() }
 fun LocalDate.toProtoDateI(): Date = Date.newBuilder().setValue(this.toString()).build()
 fun DateOrBuilder.toLocalDateI(): LocalDate = LocalDate.parse(this.value)
 fun DateOrBuilder.toLocalDateOrNullI(): LocalDate? = tryOrNullI { toLocalDateI() }
+fun DateOrBuilder.toOffsetDateTimeI(): OffsetDateTime = toLocalDateI().toOffsetDateTimeI()
+fun DateOrBuilder.toOffsetDateTimeOrNullI(): OffsetDateTime? = tryOrNullI { toOffsetDateTimeI() }
 
 //
 // Timestamp

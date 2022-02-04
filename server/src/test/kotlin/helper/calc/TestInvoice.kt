@@ -3,10 +3,17 @@ package helper.calc
 import helper.calc.TestLineItem.TestLineItemBuilder
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.LineItem
+import io.provenance.invoice.domain.dto.InvoiceDto
+import io.provenance.invoice.util.enums.InvoiceStatus
+import io.provenance.invoice.util.extension.toOffsetDateTimeI
 import io.provenance.invoice.util.extension.toProtoDateI
 import io.provenance.invoice.util.extension.toProtoDecimalI
 import io.provenance.invoice.util.extension.toProtoUuidI
+import io.provenance.invoice.util.extension.totalAmountI
 import io.provenance.invoice.util.extension.wrapListI
+import io.provenance.metadata.v1.MsgWriteRecordRequest
+import io.provenance.metadata.v1.MsgWriteScopeRequest
+import io.provenance.metadata.v1.MsgWriteSessionRequest
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
@@ -44,10 +51,11 @@ data class TestInvoice internal constructor(
         fun dueDate(dueDate: LocalDate) = apply { this.dueDate = dueDate }
         fun description(description: String) = apply { this.description = description }
         fun paymentDenom(paymentDenom: String) = apply { this.paymentDenom = paymentDenom }
+        fun addLineForAmount(amount: BigDecimal) = apply { this.lineItems.add(TestLineItemBuilder().quantity(1).price(amount).build()) }
         fun addLineItem(lineItem: TestLineItem) = apply { this.lineItems.add(lineItem) }
         fun addLineItemBuilder(fn: (TestLineItemBuilder) -> TestLineItemBuilder) = apply { this.lineItems.add(fn(TestLineItemBuilder()).build()) }
 
-        fun build(validate: Boolean = true): TestInvoice = TestInvoice(
+        fun build(): TestInvoice = TestInvoice(
             invoiceUuid = this.invoiceUuid ?: UUID.randomUUID(),
             fromAddress = this.fromAddress ?: "sender",
             toAddress = this.toAddress ?: "receiver",
@@ -69,6 +77,24 @@ data class TestInvoice internal constructor(
         invoiceBuilder.paymentDenom = paymentDenom
         invoiceBuilder.addAllLineItems(lineItems.map { it.toProto() })
     }.build()
+
+    fun toDto(status: InvoiceStatus = InvoiceStatus.PENDING_STAMP): InvoiceDto = toProto().let { invoiceProto ->
+        InvoiceDto(
+            uuid = invoiceUuid,
+            invoice = toProto(),
+            status = status,
+            totalOwed = invoiceProto.totalAmountI(),
+            writeScopeRequest = MsgWriteScopeRequest.getDefaultInstance(),
+            writeSessionRequest = MsgWriteSessionRequest.getDefaultInstance(),
+            writeRecordRequest = MsgWriteRecordRequest.getDefaultInstance(),
+            created = invoiceProto.invoiceCreatedDate.toOffsetDateTimeI(),
+            updated = null,
+        )
+    }
+
+    fun toCalcGen(): TestCalcGen = TestCalcGen.fromTestInvoice(this)
+
+    fun toCustomCalcGen(startingInvoiceStatus: InvoiceStatus): TestCalcGen = TestCalcGen.fromTestInvoice(this, startingInvoiceStatus)
 }
 
 data class TestLineItem internal constructor(
