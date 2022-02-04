@@ -186,7 +186,7 @@ class EventHandlerService(
         logger.info("$logPrefix Handling payment made event")
         val calc = invoiceCalcFactory.generate(event.invoiceUuid)
         val paymentTime = event.streamEvent.attributeValueI<OffsetDateTime>(PayableContractKey.PAYMENT_TIME)
-        if (calc.payments.none { it.effectiveTime == paymentTime }) {
+        if (calc.payments.any { it.effectiveTime == paymentTime }) {
             logger.warn("$logPrefix Duplicate payment for time [$paymentTime] received. Ignoring duplicate request")
             return
         }
