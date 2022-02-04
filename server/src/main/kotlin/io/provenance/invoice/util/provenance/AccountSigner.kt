@@ -5,6 +5,7 @@ import cosmos.crypto.secp256k1.Keys
 import io.provenance.client.grpc.Signer
 import io.provenance.hdwallet.ec.PrivateKey
 import io.provenance.hdwallet.ec.PublicKey
+import io.provenance.hdwallet.ec.toECKeyPair
 import io.provenance.hdwallet.ec.toECPrivateKey
 import io.provenance.hdwallet.ec.toECPublicKey
 import io.provenance.hdwallet.ec.toJavaPrivateKey
@@ -26,26 +27,30 @@ class AccountSigner(
     override fun sign(data: ByteArray): ByteArray = BCECSigner().sign(privateKey, data.sha256()).encodeAsBTC()
 
     companion object {
-        fun fromAccountDetail(accountDetail: ProvenanceAccountDetail): AccountSigner = AccountSigner(
-            address = accountDetail.bech32Address,
-            publicKey = accountDetail.publicKey.toECPublicKey(),
-            privateKey = accountDetail.privateKey.toECPrivateKey(),
-        )
+        fun fromAccountDetail(
+            accountDetail: ProvenanceAccountDetail
+        ): AccountSigner = accountDetail.privateKey.toECPrivateKey().toECKeyPair().let { keyPair ->
+            AccountSigner(
+                address = accountDetail.bech32Address,
+                publicKey = keyPair.publicKey,
+                privateKey = keyPair.privateKey,
+            )
+        }
 
         fun fromJavaPrivateKey(
             privateKey: java.security.PrivateKey,
             mainNet: Boolean,
-        ): AccountSigner = privateKey.toKeyPair().let { keyPair ->
-            AccountSigner(
-                address = keyPair.public.getAddress(mainNet),
-                publicKey = keyPair.public.toECPublicKey(),
-                privateKey = keyPair.private.toECPrivateKey(),
-            )
-        }
+        ): AccountSigner = fromWalletPrivateKey(privateKey.toECPrivateKey(), mainNet)
 
         fun fromWalletPrivateKey(
             privateKey: PrivateKey,
             mainNet: Boolean,
-        ): AccountSigner = fromJavaPrivateKey(privateKey = privateKey.toJavaPrivateKey(), mainNet = mainNet)
+        ): AccountSigner = privateKey.toJavaPrivateKey().toKeyPair().let { keyPair ->
+            AccountSigner(
+                address = keyPair.public.getAddress(mainNet),
+                publicKey = privateKey.toPublicKey(),
+                privateKey = privateKey,
+            )
+        }
     }
 }

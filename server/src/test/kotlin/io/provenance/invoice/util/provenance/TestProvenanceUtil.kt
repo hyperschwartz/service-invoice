@@ -3,7 +3,7 @@ package io.provenance.invoice.util.provenance
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class TestProvenanceAddressUtil {
+class TestProvenanceUtil {
     private companion object {
         private const val SAMPLE_DENOM = "invoice-816c4384-7f8c-11ec-949d-afb68037fcad"
         private const val SOURCE_ADDRESS_BODY = "1hyt8cwsqpgeajjxy92098tn27uyuqp25"
