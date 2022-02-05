@@ -6,8 +6,10 @@ import helper.assertZeroBD
 import helper.calc.TestInvoice
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.enums.PaymentStatus
+import io.provenance.invoice.util.extension.toBigDecimalI
 import io.provenance.invoice.util.extension.toLocalDateI
 import io.provenance.invoice.util.extension.toOffsetDateTimeI
+import io.provenance.invoice.util.extension.toUuidI
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -45,6 +47,11 @@ class TestCalcScenarios {
             message = "The owner address on the calc should be the sender address from the invoice",
         )
         assertEquals(
+            expected = calcGen.invoiceDto.invoice.toAddress,
+            actual = calc.payerAddress,
+            message = "The payer address on the calc should be the receiver address from the invoice",
+        )
+        assertEquals(
             expected = calcGen.invoiceDto.invoice.invoiceCreatedDate.toLocalDateI(),
             actual = calc.createdDate,
             message = "The created date for the calc should be the date the invoice was created",
@@ -67,6 +74,11 @@ class TestCalcScenarios {
             actual = calc.paymentSum,
             message = "The payment sum should be zero because no payments have been added",
         )
+        assertEquals(
+            expected = "nhash",
+            actual = calc.paymentDenom,
+            message = "Expected the payment denom to be output on the root of the invoice calc",
+        )
         assertEqualsBD(
             expected = calcGen.invoiceDto.totalOwed,
             actual = calc.originalOwed,
@@ -85,6 +97,38 @@ class TestCalcScenarios {
         assertNull(
             actual = calc.payoffTime,
             message = "The payoff time should not be set because no payments have been made",
+        )
+        val protoLineItem = calcGen.invoiceDto.invoice.lineItemsList.assertSingleI("A single line item should be added to the default invoice mock")
+        val calcLineItem = calc.lineItems.assertSingleI("A single line item should be in the calc result")
+        assertEquals(
+            expected = protoLineItem.lineUuid.toUuidI(),
+            actual = calcLineItem.uuid,
+            message = "The calc line item should match its uuid with the proto",
+        )
+        assertEquals(
+            expected = protoLineItem.name,
+            actual = calcLineItem.name,
+            message = "The calc line item should match its name with the proto",
+        )
+        assertEquals(
+            expected = protoLineItem.description,
+            actual = calcLineItem.description,
+            message = "The calc line item should match its description with the proto",
+        )
+        assertEquals(
+            expected = protoLineItem.quantity,
+            actual = calcLineItem.quantity,
+            message = "The calc line item should match its quantity with the proto",
+        )
+        assertEqualsBD(
+            expected = protoLineItem.price.toBigDecimalI(),
+            actual = calcLineItem.price,
+            message = "The calc line item should match its price with the proto",
+        )
+        assertEquals(
+            expected = protoLineItem.quantity.toBigDecimal() * protoLineItem.price.toBigDecimalI(),
+            actual = calcLineItem.total,
+            message = "The calc line item's total should be derived by multiplying the quantity and price of the proto",
         )
     }
 
