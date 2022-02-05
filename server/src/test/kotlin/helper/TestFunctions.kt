@@ -12,8 +12,16 @@ fun <T> assertSucceeds(message: String = "Block failed to execute without except
 
 fun assertEqualsBD(expected: BigDecimal?, actual: BigDecimal?, scale: Int = 5, message: String? = null) {
     assertEquals(
-        expected = expected?.testRounding(scale),
-        actual = actual?.testRounding(scale),
+        expected = expected?.testRoundingI(scale),
+        actual = actual?.testRoundingI(scale),
+        message = message,
+    )
+}
+
+fun assertZeroBD(actual: BigDecimal?, message: String? = null) {
+    assertEqualsBD(
+        expected = BigDecimal.ZERO,
+        actual = actual,
         message = message,
     )
 }
