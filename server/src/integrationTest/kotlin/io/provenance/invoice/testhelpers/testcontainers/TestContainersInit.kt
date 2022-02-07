@@ -18,9 +18,10 @@ import java.util.UUID
 class TestContainersInit : ApplicationContextInitializer<ConfigurableApplicationContext> {
     private companion object : KLogging() {
         private val DEFAULT_PROPERTIES: Set<String> = setOf(
-            // Turning the event stream on in an integration test environment makes no sense.
+            // Turning the event stream and retries on in an integration test environment makes no sense.
             // Each individual event stream event should instead be tested alone
             "event.stream.enabled=false",
+            "service.fail_state_retry_enabled=false",
         )
     }
 

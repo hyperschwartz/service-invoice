@@ -10,4 +10,5 @@ import org.springframework.validation.annotation.Validated
 data class ServiceProperties(
     val name: String,
     val environment: String,
+    val failStateRetryEnabled: Boolean,
 )

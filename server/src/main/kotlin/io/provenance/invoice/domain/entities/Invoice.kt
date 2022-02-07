@@ -15,6 +15,7 @@ import io.provenance.invoice.util.extension.toUuidI
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
+import org.jetbrains.exposed.sql.and
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -80,6 +81,16 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
     fun findAllToAddress(toAddress: String): List<Invoice> = InvoiceTable
         .select { InvoiceTable.toAddress eq toAddress }
         .map { it[InvoiceTable.data] }
+
+    fun findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids: Collection<UUID>? = null): List<UUID> = InvoiceTable
+        .select {
+            (InvoiceTable.status eq InvoiceStatus.APPROVAL_FAILURE.name)
+                .let { queryClause ->
+                    onlyIncludeUuids
+                        ?.let { uuids -> queryClause.and(InvoiceTable.id.inList(onlyIncludeUuids)) }
+                        ?: queryClause
+                }
+        }.map { it[InvoiceTable.id].value }
 }
 
 class InvoiceRecord(uuid: EntityID<UUID>) : UUIDEntity(uuid) {

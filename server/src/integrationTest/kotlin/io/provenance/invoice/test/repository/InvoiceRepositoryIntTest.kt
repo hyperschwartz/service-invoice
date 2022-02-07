@@ -9,11 +9,13 @@ import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.testhelpers.IntTestBase
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.extension.toUuidI
+import io.provenance.invoice.util.extension.wrapListI
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
@@ -83,6 +85,31 @@ class InvoiceRepositoryIntTest : IntTestBase() {
         assertTrue(
             actual = secondInvoice.invoiceUuid.toUuidI() in foundByReceiver,
             message = "The second invoice should be present in the response list for the receiver",
+        )
+    }
+
+    @Test
+    fun testFailStateRetryQuery() {
+        val invoiceDto = insertInvoice(MockProtoUtil.getMockInvoice())
+        assertFalse(
+            actual = invoiceDto.uuid in invoiceRepository.findInvoiceUuidsWithFailedOracleApprovals(),
+            message = "The invoice dto should not show up in the failed oracle approval statuses when first boarded",
+        )
+        invoiceRepository.update(
+            uuid = invoiceDto.uuid,
+            status = InvoiceStatus.APPROVAL_FAILURE,
+        )
+        assertTrue(
+            actual = invoiceDto.uuid in invoiceRepository.findInvoiceUuidsWithFailedOracleApprovals(),
+            message = "The invoice dto should be included in the failed oracle approval statuses once its status is set to failed",
+        )
+        assertTrue(
+            actual = invoiceDto.uuid in invoiceRepository.findInvoiceUuidsWithFailedOracleApprovals(invoiceDto.uuid.wrapListI()),
+            message = "The invoice dto should be included in the failed oracle approval statuses if targeted directly",
+        )
+        assertFalse(
+            actual = invoiceDto.uuid in invoiceRepository.findInvoiceUuidsWithFailedOracleApprovals(UUID.randomUUID().wrapListI()),
+            message = "The invoice dto should not be included in the failed oracle approval statuses if a different uuid is targeted",
         )
     }
 

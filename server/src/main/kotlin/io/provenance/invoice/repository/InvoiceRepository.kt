@@ -80,4 +80,7 @@ class InvoiceRepository {
 
     fun findAllByToAddress(toAddress: String): List<Invoice> =
         transaction { InvoiceRecord.findAllToAddress(toAddress) }
+
+    fun findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids: Collection<UUID>? = null): List<UUID> =
+        transaction { InvoiceRecord.findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids) }
 }
