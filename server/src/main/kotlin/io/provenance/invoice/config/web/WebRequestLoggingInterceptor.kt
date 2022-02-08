@@ -44,7 +44,7 @@ class WebRequestLoggingInterceptor : HandlerInterceptor {
     ) {
         // If MDC request time exists on an executed request, log the amount of time the route took
         MDC.get(MDCKeys.REQUEST_STARTED.key)?.toOffsetDateTimeOrNullI()?.toInstant()?.toEpochMilli()?.let { startTimeMillis ->
-            logger.info("END request [${request.requestURL}] | Took ${System.currentTimeMillis() - startTimeMillis}ms")
+            logger.info("END request [${request.requestURL}] | Took ${OffsetDateTime.now().toInstant().toEpochMilli() - startTimeMillis}ms")
         }
     }
 }
