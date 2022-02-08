@@ -21,7 +21,7 @@ fun AssetType.assetKvNameI(): String = this.getExtensionValue(AssetProtos.assetK
 
 fun InvoiceOrBuilder.toAssetI(): Asset = this.toAssetI(
     assetType = AssetType.NFT,
-    assetDescription = "${AssetType.NFT.provenanceNameI()} [${this.invoiceUuid.value}]",
+    assetDescription = "Invoice [${this.invoiceUuid.value}]",
     idProvider = { invoiceUuid },
 )
 
