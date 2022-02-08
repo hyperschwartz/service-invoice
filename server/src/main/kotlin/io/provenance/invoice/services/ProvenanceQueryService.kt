@@ -28,7 +28,7 @@ class ProvenanceQueryService(
     private val provenanceProperties: ProvenanceProperties,
 ) {
     private companion object : KLogging()
-    
+
     fun submitOracleApproval(invoiceUuid: UUID, logPrefix: String = "ORACLE APPROVAL [$invoiceUuid]:") {
         logger.info("$logPrefix Marking oracle approval on the chain")
         val contractInfo = try {
