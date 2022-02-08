@@ -54,6 +54,9 @@ class InvoiceControllerV1(
     @GetMapping("/address/to/{toAddress}")
     fun getByToAddress(@PathVariable toAddress: String): List<ByteArray> = invoiceRepository.findAllByToAddress(toAddress).map { it.toByteArray() }
 
+    @PostMapping("/address/all")
+    fun getByToAddresses(@RequestBody request: ToAddressRequest): List<ByteArray> = invoiceRepository.findAllByToAddresses(request.addresses).map { it.toByteArray() }
+
     @GetMapping("/calc/{uuid}")
     fun getCalc(
         @PathVariable uuid: UUID,
@@ -61,3 +64,6 @@ class InvoiceControllerV1(
     ): InvoiceCalc = invoiceCalcFactory.generate(invoiceUuid = uuid, calcTime = calcTime ?: OffsetDateTime.now())
 }
 
+data class ToAddressRequest(
+    val addresses: List<String>
+)

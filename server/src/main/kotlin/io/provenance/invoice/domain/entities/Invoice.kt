@@ -78,8 +78,8 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
         .select { InvoiceTable.fromAddress eq fromAddress }
         .map { it[InvoiceTable.data] }
 
-    fun findAllToAddress(toAddress: String): List<Invoice> = InvoiceTable
-        .select { InvoiceTable.toAddress eq toAddress }
+    fun findAllToAddresses(toAddresses: Collection<String>): List<Invoice> = InvoiceTable
+        .select { InvoiceTable.toAddress inList toAddresses }
         .map { it[InvoiceTable.data] }
 
     fun findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids: Collection<UUID>? = null): List<UUID> = InvoiceTable
@@ -87,7 +87,7 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
             (InvoiceTable.status eq InvoiceStatus.APPROVAL_FAILURE.name)
                 .let { queryClause ->
                     onlyIncludeUuids
-                        ?.let { uuids -> queryClause.and(InvoiceTable.id.inList(onlyIncludeUuids)) }
+                        ?.let { uuids -> queryClause.and(InvoiceTable.id inList uuids) }
                         ?: queryClause
                 }
         }.map { it[InvoiceTable.id].value }

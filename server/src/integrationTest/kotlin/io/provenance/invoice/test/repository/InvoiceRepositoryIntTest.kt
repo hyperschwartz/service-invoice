@@ -113,6 +113,28 @@ class InvoiceRepositoryIntTest : IntTestBase() {
         )
     }
 
+    @Test
+    fun testFindAllByToAddresses() {
+        val firstToAddress = "first-${UUID.randomUUID()}"
+        val secondToAddress = "second-${UUID.randomUUID()}"
+        val firstInvoice = insertInvoice(MockProtoUtil.getMockInvoice().toBuilder().setToAddress(firstToAddress).build())
+        val secondInvoice = insertInvoice(MockProtoUtil.getMockInvoice().toBuilder().setToAddress(secondToAddress).build())
+        val invoiceUuids = invoiceRepository.findAllByToAddresses(listOf(firstToAddress, secondToAddress)).map { it.invoiceUuid.toUuidI() }
+        assertEquals(
+            expected = 2,
+            actual = invoiceUuids.size,
+            message = "Expected only two invoices to be returned by the query",
+        )
+        assertTrue(
+            actual = firstInvoice.uuid in invoiceUuids,
+            message = "Expected the first invoice to be picked up by its toAddress",
+        )
+        assertTrue(
+            actual = secondInvoice.uuid in invoiceUuids,
+            message = "Expected the second invoice to be picked up by its toAddress",
+        )
+    }
+
     private fun insertInvoice(invoice: Invoice): InvoiceDto = invoiceRepository.insert(
         invoice = invoice,
         status = InvoiceStatus.PENDING_STAMP,

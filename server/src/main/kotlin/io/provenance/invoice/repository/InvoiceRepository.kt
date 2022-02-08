@@ -8,6 +8,7 @@ import io.provenance.invoice.domain.exceptions.ResourceNotFoundException
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.stereotype.Repository
 import io.provenance.invoice.util.enums.InvoiceStatus
+import io.provenance.invoice.util.extension.wrapListI
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -79,7 +80,10 @@ class InvoiceRepository {
         transaction { InvoiceRecord.findAllFromAddress(fromAddress) }
 
     fun findAllByToAddress(toAddress: String): List<Invoice> =
-        transaction { InvoiceRecord.findAllToAddress(toAddress) }
+        transaction { InvoiceRecord.findAllToAddresses(toAddress.wrapListI()) }
+
+    fun findAllByToAddresses(toAddresses: Collection<String>): List<Invoice> =
+        transaction { InvoiceRecord.findAllToAddresses(toAddresses) }
 
     fun findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids: Collection<UUID>? = null): List<UUID> =
         transaction { InvoiceRecord.findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids) }
