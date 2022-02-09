@@ -1,6 +1,7 @@
 package io.provenance.invoice.domain.dto
 
 import io.provenance.invoice.InvoiceProtos.Invoice
+import io.provenance.invoice.calculator.InvoiceCalc
 import io.provenance.invoice.domain.entities.InvoiceRecord
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.extension.totalAmountI
@@ -22,6 +23,7 @@ data class InvoiceDto(
     val writeRecordRequest: MsgWriteRecordRequest,
     val created: OffsetDateTime,
     val updated: OffsetDateTime?,
+    val calc: InvoiceCalc? = null
 ) {
     companion object {
         fun fromRecord(record: InvoiceRecord): InvoiceDto = InvoiceDto(
@@ -36,4 +38,6 @@ data class InvoiceDto(
             updated = record.updatedTime,
         )
     }
+
+    fun withCalc(calc: InvoiceCalc) = this.copy(calc = calc)
 }

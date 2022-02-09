@@ -1,6 +1,7 @@
 package io.provenance.invoice.domain.entities
 
 import io.provenance.invoice.domain.dto.PaymentDto
+import io.provenance.invoice.domain.entities.PaymentTable.invoiceUuid
 import io.provenance.invoice.util.exposed.offsetDatetime
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
@@ -44,6 +45,10 @@ open class PaymentEntityClass(paymentTable: PaymentTable): UUIDEntityClass<Payme
 
     fun findAllByInvoiceUuid(invoiceUuid: UUID): List<PaymentDto> = PaymentTable
         .select { PaymentTable.invoiceUuid eq invoiceUuid }
+        .map { PaymentDto.fromResultRow(it) }
+
+    fun findAllByInvoiceUuids(invoiceUuids: List<UUID>): List<PaymentDto> = PaymentTable
+        .select { PaymentTable.invoiceUuid inList invoiceUuids }
         .map { PaymentDto.fromResultRow(it) }
 }
 
