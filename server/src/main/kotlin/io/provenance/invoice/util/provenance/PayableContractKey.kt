@@ -25,6 +25,7 @@ enum class PayableContractKey(val contractName: String, val isEventKey: Boolean)
 
     companion object {
         val EVENT_KEYS: List<PayableContractKey> by lazy { values().filter { it.isEventKey } }
-        val EVENT_KEY_LISTEN_VALUES: List<String> by lazy { EVENT_KEYS.map { "wasm:${it.contractName}"} }
+        val EVENT_KEYS_CONTRACT_NAMES: List<String> by lazy { EVENT_KEYS.map { it.contractName } }
+        val EVENT_KEY_LISTEN_VALUES: List<String> by lazy { EVENT_KEYS_CONTRACT_NAMES.map { "wasm:$it" } }
     }
 }

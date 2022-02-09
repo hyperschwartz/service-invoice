@@ -34,16 +34,14 @@ class ProvenanceQueryService(
         val contractInfo = try {
             pbClient.nameClient.resolve(QueryResolveRequest.newBuilder().setName(provenanceProperties.payablesContractName).build())
         } catch (e: Exception) {
-            logger.error("$logPrefix Failed to resolve contract by name [${provenanceProperties.payablesContractName}]. Marking invoice with approval failure", e)
             approvalFailure(invoiceUuid)
-            return
+            throw OracleApprovalException("$logPrefix Failed to resolve contract by name [${provenanceProperties.payablesContractName}]. Marking invoice with approval failure", e)
         }
         val baseAccount = try {
             pbClient.getBaseAccount(objectStore.oracleAccountDetail.bech32Address)
         } catch (e: Exception) {
-            logger.error("$logPrefix Failed to fetch base account for oracle address [${objectStore.oracleAccountDetail.bech32Address}]. Marking invoice with approval failure", e)
             approvalFailure(invoiceUuid)
-            return
+            throw OracleApprovalException("$logPrefix Failed to fetch base account for oracle address [${objectStore.oracleAccountDetail.bech32Address}]. Marking invoice with approval failure", e)
         }
         val baseReq = BaseReq(
             signers = BaseReqSigner(
@@ -65,9 +63,8 @@ class ProvenanceQueryService(
         val gasEstimate = try {
             pbClient.estimateTx(baseReq)
         } catch (e: Exception) {
-            logger.error("$logPrefix Failed to estimate gas for oracle approval. Marking invoice with approval failure", e)
             approvalFailure(invoiceUuid)
-            return
+            throw OracleApprovalException("$logPrefix Failed to estimate gas for oracle approval. Marking invoice with approval failure", e)
         }
         try {
             val response = pbClient.broadcastTx(baseReq = baseReq, gasEstimate = gasEstimate, mode = ServiceOuterClass.BroadcastMode.BROADCAST_MODE_BLOCK)
@@ -77,8 +74,8 @@ class ProvenanceQueryService(
             logger.info("$logPrefix Oracle approval transaction succeeded. Marking invoice as approved")
             invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVED)
         } catch (e: Exception) {
-            logger.error("Oracle approval failed exceptionally", e)
             approvalFailure(invoiceUuid)
+            throw OracleApprovalException("Oracle approval transaction failed to process", e)
         }
     }
 
@@ -86,3 +83,5 @@ class ProvenanceQueryService(
         invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVAL_FAILURE)
     }
 }
+
+class OracleApprovalException(message: String, cause: Exception) : Exception(message, cause)

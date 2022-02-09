@@ -31,4 +31,7 @@ export ONBOARDING_API_KEY=ask-develops-for-this-value-if-you-need-it
 ```
 
 ### Deployment
-Maybe someday....
+This project is built via the release manager on GitHub.  It provides the entire Spring Boot application in a
+downloadable docker container that can be accessed on GHCR.
+
+The deployed application currently lives here: https://github.com/hyperschwartz/service-invoice

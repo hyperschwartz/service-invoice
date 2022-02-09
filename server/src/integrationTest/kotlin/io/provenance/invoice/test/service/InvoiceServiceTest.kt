@@ -2,7 +2,6 @@ package io.provenance.invoice.test.service
 
 import helper.MockProtoUtil
 import helper.TestConstants
-import io.provenance.invoice.domain.wallet.WalletDetails
 import io.provenance.invoice.services.InvoiceService
 import io.provenance.invoice.services.OnboardInvoiceRequest
 import io.provenance.invoice.testhelpers.IntTestBase
@@ -26,10 +25,7 @@ class InvoiceServiceTest : IntTestBase() {
         val response = invoiceService.onboardInvoice(
             request = OnboardInvoiceRequest(
                 invoice = invoice,
-                walletDetails = WalletDetails(
-                    address = TestConstants.VALID_ADDRESS,
-                    publicKey = TestConstants.VALID_PUBLIC_KEY,
-                )
+                walletAddress = TestConstants.VALID_ADDRESS,
             )
         )
         assertEquals(

@@ -2,8 +2,6 @@ package io.provenance.invoice.services
 
 import com.google.protobuf.Any
 import io.provenance.invoice.InvoiceProtos.Invoice
-import io.provenance.invoice.domain.wallet.WalletDetails
-import io.provenance.scope.util.MetadataAddress
 import mu.KLogging
 import org.springframework.stereotype.Service
 import io.provenance.invoice.repository.InvoiceRepository
@@ -35,8 +33,7 @@ class InvoiceService(
         logger.info("Generating onboarding asset from invoice with uuid [${request.invoice.invoiceUuid.value}]")
         val asset = request.invoice.toAssetI()
         logger.info("Generating onboarding messages for invoice with uuid [${request.invoice.invoiceUuid.value}]")
-        // TODO: Need to store the results from this in the db alongside the invoice to enable retries
-        val assetOnboardingResponse = assetOnboardingService.generateInvoiceBoardingTx(asset = asset, walletDetails = request.walletDetails)
+        val assetOnboardingResponse = assetOnboardingService.generateInvoiceBoardingTx(asset = asset, walletAddress = request.walletAddress)
         logger.info("Storing successful payload in the database for invoice [${request.invoice.invoiceUuid.value}]")
         val upsertedInvoice = invoiceRepository.insert(
             invoice = request.invoice,
@@ -67,7 +64,7 @@ class InvoiceService(
 
 data class OnboardInvoiceRequest(
     val invoice: Invoice,
-    val walletDetails: WalletDetails,
+    val walletAddress: String,
 )
 
 data class OnboardInvoiceResponse(

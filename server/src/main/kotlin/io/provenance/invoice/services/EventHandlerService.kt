@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.Futures
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.config.provenance.ObjectStore
 import io.provenance.invoice.factory.InvoiceCalcFactory
+import io.provenance.invoice.repository.FailedEventRepository
 import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.repository.PaymentRepository
 import io.provenance.invoice.util.enums.ExpectedPayableType
@@ -22,9 +23,11 @@ import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.util.UUID
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @Service
 class EventHandlerService(
+    private val failedEventRepository: FailedEventRepository,
     private val invoiceCalcFactory: InvoiceCalcFactory,
     private val objectStore: ObjectStore,
     private val invoiceRepository: InvoiceRepository,
@@ -48,7 +51,7 @@ class EventHandlerService(
         private val HANDLER_THREAD_POOL = Executors.newFixedThreadPool(10)
     }
 
-    fun handleEvent(event: StreamEvent) {
+    fun handleEvent(event: StreamEvent, isRetry: Boolean = false) {
         try {
             // Payable type should be emitted by all events
             val payableType = event.attributeValueI<String>(PayableContractKey.PAYABLE_TYPE)
@@ -58,7 +61,8 @@ class EventHandlerService(
             }
             val incomingEvent = IncomingInvoiceEvent(
                 streamEvent = event,
-                invoiceUuid = event.attributeValueI(PayableContractKey.PAYABLE_UUID)
+                invoiceUuid = event.attributeValueI(PayableContractKey.PAYABLE_UUID),
+                isRetry = isRetry,
             )
             val eventKeys = event.attributes.map { it.key }
             when {
@@ -68,6 +72,7 @@ class EventHandlerService(
             }
         } catch (e: Exception) {
             logger.error("Failed to process event with hash [${event.txHash}] and type [${event.eventType}] at height [${event.height}]", e)
+            handleFailedInvoiceEvent(txHash = event.txHash, isRetry = isRetry)
         }
     }
 
@@ -80,39 +85,30 @@ class EventHandlerService(
             return
         }
         val assetHash = invoiceDto.writeRecordRequest.record.resultHash()
-        val getFuture = objectStore.osClient.get(
-            hash = assetHash,
-            publicKey = objectStore.oracleAccountDetail.publicKey,
-        )
-        Futures.addCallback(getFuture, object : FutureCallback<DIMEInputStream> {
-            override fun onSuccess(result: DIMEInputStream?) {
-                result
-                    .checkNotNullI { "$logPrefix Null DIMEInputStream received from object store query" }
-                    .getDecryptedPayload(objectStore.oracleAccountDetail.keyRef)
-                    .use { signatureStream ->
-                        val messageBytes = signatureStream.readAllBytes()
-                        val targetInvoice = Asset.parseFrom(messageBytes).unpackInvoiceI()
-                        try {
-                            InvoiceValidator.validateInvoiceForApproval(
-                                invoiceDto = invoiceDto,
-                                objectStoreInvoice = targetInvoice,
-                                eventScopeId = event.streamEvent.attributeValueI(PayableContractKey.SCOPE_ID),
-                                eventTotalOwed = event.streamEvent.attributeValueI(PayableContractKey.TOTAL_OWED),
-                                eventInvoiceDenom = event.streamEvent.attributeValueI(PayableContractKey.REGISTERED_DENOM),
-                            )
-                        } catch (e: Exception) {
-                            logger.error("$logPrefix Failed validation. Marking rejected", e)
-                            invoiceRepository.update(uuid = event.invoiceUuid, status = InvoiceStatus.REJECTED)
-                            return
-                        }
-                        logger.info("$logPrefix Successfully validated invoice from object store")
-                        provenanceQueryService.submitOracleApproval(event.invoiceUuid, logPrefix)
-                    }
+        objectStore
+            .osClient
+            .get(hash = assetHash, publicKey = objectStore.oracleAccountDetail.publicKey)
+            .get(2, TimeUnit.MINUTES)
+            .getDecryptedPayload(objectStore.oracleAccountDetail.keyRef)
+            .use { signatureStream ->
+                val messageBytes = signatureStream.readAllBytes()
+                val targetInvoice = Asset.parseFrom(messageBytes).unpackInvoiceI()
+                try {
+                    InvoiceValidator.validateInvoiceForApproval(
+                        invoiceDto = invoiceDto,
+                        objectStoreInvoice = targetInvoice,
+                        eventScopeId = event.streamEvent.attributeValueI(PayableContractKey.SCOPE_ID),
+                        eventTotalOwed = event.streamEvent.attributeValueI(PayableContractKey.TOTAL_OWED),
+                        eventInvoiceDenom = event.streamEvent.attributeValueI(PayableContractKey.REGISTERED_DENOM),
+                    )
+                } catch (e: Exception) {
+                    logger.error("$logPrefix Failed validation. Marking rejected", e)
+                    invoiceRepository.update(uuid = event.invoiceUuid, status = InvoiceStatus.REJECTED)
+                    return
+                }
+                logger.info("$logPrefix Successfully validated invoice from object store")
+                provenanceQueryService.submitOracleApproval(event.invoiceUuid, logPrefix)
             }
-            override fun onFailure(t: Throwable) {
-                logger.error("$logPrefix Failed to receive DIME stream from object store", t)
-            }
-        }, HANDLER_THREAD_POOL)
     }
 
     fun handleOracleApprovedEvent(event: IncomingInvoiceEvent) {
@@ -147,7 +143,15 @@ class EventHandlerService(
         )
     }
 
+    private fun handleFailedInvoiceEvent(event: IncomingInvoiceEvent): Unit =
+        handleFailedInvoiceEvent(event.streamEvent.txHash, event.isRetry)
 
+    private fun handleFailedInvoiceEvent(txHash: String, isRetry: Boolean) {
+        if (!isRetry) {
+            logger.info("Marking failed event [$txHash] for retry")
+            failedEventRepository.insertEvent(txHash)
+        }
+    }
 }
 
-data class IncomingInvoiceEvent(val streamEvent: StreamEvent, val invoiceUuid: UUID)
+data class IncomingInvoiceEvent(val streamEvent: StreamEvent, val invoiceUuid: UUID, val isRetry: Boolean)

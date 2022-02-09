@@ -7,6 +7,10 @@ import io.provenance.invoice.config.app.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
 import io.provenance.scope.util.toByteString
 import java.util.UUID
 
+/**
+ * This data class is used to send an "oracle approval" message to the payable asset smart contract.  It serializes to
+ * snake case, because that's the format of json that the contract accepts.
+ */
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class OracleApproval(
     val oracleApproval: OracleApprovalBody

@@ -4,7 +4,6 @@ import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.calculator.InvoiceCalc
 import io.provenance.invoice.config.web.AppHeaders
 import io.provenance.invoice.config.web.AppRoutes
-import io.provenance.invoice.domain.wallet.WalletDetails
 import io.provenance.invoice.factory.InvoiceCalcFactory
 import io.provenance.scope.objectstore.util.base64EncodeString
 import mu.KLogging
@@ -40,11 +39,10 @@ class InvoiceControllerV1(
     fun onboardInvoice(
         @RequestBody invoice: Invoice,
         @RequestHeader(AppHeaders.ADDRESS) address: String,
-        @RequestHeader(AppHeaders.PUBLIC_KEY) publicKey: String,
     ): OnboardInvoiceResponse = invoiceService.onboardInvoice(
         request = OnboardInvoiceRequest(
             invoice = invoice,
-            walletDetails = WalletDetails(address = address, publicKey = publicKey),
+            walletAddress = address,
         )
     )
 
