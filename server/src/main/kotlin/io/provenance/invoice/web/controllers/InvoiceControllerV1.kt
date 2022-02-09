@@ -4,6 +4,7 @@ import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.calculator.InvoiceCalc
 import io.provenance.invoice.config.web.AppHeaders
 import io.provenance.invoice.config.web.AppRoutes
+import io.provenance.invoice.domain.dto.InvoiceDto
 import io.provenance.invoice.factory.InvoiceCalcFactory
 import io.provenance.scope.objectstore.util.base64EncodeString
 import mu.KLogging
@@ -47,13 +48,13 @@ class InvoiceControllerV1(
     )
 
     @GetMapping("/address/from/{fromAddress}")
-    fun getByFromAddress(@PathVariable fromAddress: String): List<ByteArray> = invoiceRepository.findAllByFromAddress(fromAddress).map { it.toByteArray() }
+    fun getByFromAddress(@PathVariable fromAddress: String): List<InvoiceDto> = invoiceCalcFactory.generateMany(invoiceRepository.findAllByFromAddress(fromAddress))
 
     @GetMapping("/address/to/{toAddress}")
-    fun getByToAddress(@PathVariable toAddress: String): List<ByteArray> = invoiceRepository.findAllByToAddress(toAddress).map { it.toByteArray() }
+    fun getByToAddress(@PathVariable toAddress: String): List<InvoiceDto> = invoiceCalcFactory.generateMany(invoiceRepository.findAllByToAddress(toAddress))
 
     @PostMapping("/address/all")
-    fun getByToAddresses(@RequestBody request: ToAddressRequest): List<ByteArray> = invoiceRepository.findAllByToAddresses(request.addresses).map { it.toByteArray() }
+    fun getByToAddresses(@RequestBody request: ToAddressRequest): List<InvoiceDto> = invoiceCalcFactory.generateMany(invoiceRepository.findAllByToAddresses(request.addresses))
 
     @GetMapping("/calc/{uuid}")
     fun getCalc(

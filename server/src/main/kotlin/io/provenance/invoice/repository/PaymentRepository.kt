@@ -36,4 +36,8 @@ class PaymentRepository {
     fun findAllByInvoiceUuid(invoiceUuid: UUID): List<PaymentDto> = transaction {
         PaymentRecord.findAllByInvoiceUuid(invoiceUuid)
     }
+
+    fun findAllByInvoiceUuids(invoiceUuids: List<UUID>): List<PaymentDto> = transaction {
+        PaymentRecord.findAllByInvoiceUuids(invoiceUuids)
+    }
 }

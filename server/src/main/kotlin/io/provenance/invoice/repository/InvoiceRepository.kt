@@ -76,13 +76,13 @@ class InvoiceRepository {
         ).toDto()
     }
 
-    fun findAllByFromAddress(fromAddress: String): List<Invoice> =
+    fun findAllByFromAddress(fromAddress: String): List<InvoiceDto> =
         transaction { InvoiceRecord.findAllFromAddress(fromAddress) }
 
-    fun findAllByToAddress(toAddress: String): List<Invoice> =
+    fun findAllByToAddress(toAddress: String): List<InvoiceDto> =
         transaction { InvoiceRecord.findAllToAddresses(toAddress.wrapListI()) }
 
-    fun findAllByToAddresses(toAddresses: Collection<String>): List<Invoice> =
+    fun findAllByToAddresses(toAddresses: Collection<String>): List<InvoiceDto> =
         transaction { InvoiceRecord.findAllToAddresses(toAddresses) }
 
     fun findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids: Collection<UUID>? = null): List<UUID> =

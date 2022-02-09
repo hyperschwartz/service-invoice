@@ -74,13 +74,13 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
         writeRecordRequest?.also { this.writeRecordRequest = it }
     } ?: throw ResourceNotFoundException("Failed to update invoice [${invoiceParam.invoiceUuid()}]: No record existed in the database")
 
-    fun findAllFromAddress(fromAddress: String): List<Invoice> = InvoiceTable
-        .select { InvoiceTable.fromAddress eq fromAddress }
-        .map { it[InvoiceTable.data] }
+    fun findAllFromAddress(fromAddress: String): List<InvoiceDto> = InvoiceRecord
+        .find { InvoiceTable.fromAddress eq fromAddress }
+        .map { InvoiceDto.fromRecord(it) }
 
-    fun findAllToAddresses(toAddresses: Collection<String>): List<Invoice> = InvoiceTable
-        .select { InvoiceTable.toAddress inList toAddresses }
-        .map { it[InvoiceTable.data] }
+    fun findAllToAddresses(toAddresses: Collection<String>): List<InvoiceDto> = InvoiceRecord
+        .find { InvoiceTable.toAddress inList toAddresses }
+        .map { InvoiceDto.fromRecord(it) }
 
     fun findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids: Collection<UUID>? = null): List<UUID> = InvoiceTable
         .select {
