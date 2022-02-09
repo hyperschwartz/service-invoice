@@ -71,8 +71,7 @@ class ProvenanceQueryService(
                 .checkNotNullI { "$logPrefix Null response received from oracle approval transaction" }
                 .txResponse
             check(response.code == 0) { "$logPrefix Oracle approval transaction failed. Marking invoice as failed. Error log from Provenance: ${response.rawLog}" }
-            logger.info("$logPrefix Oracle approval transaction succeeded. Marking invoice as approved")
-            invoiceRepository.update(uuid = invoiceUuid, status = InvoiceStatus.APPROVED)
+            logger.info("$logPrefix Oracle approval transaction succeeded")
         } catch (e: Exception) {
             approvalFailure(invoiceUuid)
             throw OracleApprovalException("Oracle approval transaction failed to process", e)

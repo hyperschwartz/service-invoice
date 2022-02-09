@@ -1,13 +1,18 @@
 package io.provenance.invoice.components
 
+import io.provenance.invoice.config.app.Qualifiers
 import io.provenance.invoice.config.eventstream.EventStreamConstants
 import io.provenance.invoice.config.eventstream.EventStreamProperties
 import io.provenance.invoice.services.EventHandlerService
+import io.provenance.invoice.util.coroutine.launchI
 import io.provenance.invoice.util.eventstream.external.EventBatch
 import io.provenance.invoice.util.eventstream.external.EventStreamFactory
 import io.provenance.invoice.util.eventstream.external.EventStreamResponseObserver
 import io.provenance.invoice.util.provenance.PayableContractKey
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.integration.support.locks.LockRegistry
 import org.springframework.scheduling.annotation.Scheduled
@@ -19,6 +24,7 @@ class EventStreamConsumer(
     private val eventHandlerService: EventHandlerService,
     private val eventStreamFactory: EventStreamFactory,
     private val eventStreamProperties: EventStreamProperties,
+    @Qualifier(Qualifiers.EVENT_STREAM_COROUTINE_SCOPE) private val eventStreamScope: CoroutineScope,
     private val lockRegistry: LockRegistry,
     private val redisTemplate: RedisTemplate<String, Long>,
 ) {
@@ -39,7 +45,14 @@ class EventStreamConsumer(
             try {
                 val responseObserver = EventStreamResponseObserver<EventBatch> { batch ->
                     // Handle each observed event
-                    batch.events.forEach(eventHandlerService::handleEvent)
+                    runBlocking {
+                        batch.events
+                            // Asynchronously process events in batches to allow faster execution
+                            .map { event -> eventStreamScope.launchI { eventHandlerService.handleEvent(event) } }
+                            // Do not let the code proceed without rejoining the main thread, ensuring that all events
+                            // are processed before moving to the next height
+                            .forEach { it.join() }
+                    }
                     redisTemplate.opsForValue().set(EVENT_STREAM_CONSUMER_HEIGHT, batch.height)
                     logger.info("Processed events and established new height: ${batch.height}")
                 }
