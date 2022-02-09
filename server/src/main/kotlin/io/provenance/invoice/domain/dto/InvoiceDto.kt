@@ -39,16 +39,5 @@ data class InvoiceDto(
         )
     }
 
-    fun withCalc(calc: InvoiceCalc) = InvoiceDto(
-        uuid = uuid,
-        invoice = invoice,
-        status = status,
-        totalOwed = totalOwed,
-        writeScopeRequest = writeScopeRequest,
-        writeSessionRequest = writeSessionRequest,
-        writeRecordRequest = writeRecordRequest,
-        created = created,
-        updated = updated,
-        calc = calc,
-    )
+    fun withCalc(calc: InvoiceCalc) = this.copy(calc = calc)
 }
