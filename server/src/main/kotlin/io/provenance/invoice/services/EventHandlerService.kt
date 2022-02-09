@@ -1,7 +1,5 @@
 package io.provenance.invoice.services
 
-import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.Futures
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.config.provenance.ObjectStore
 import io.provenance.invoice.factory.InvoiceCalcFactory
@@ -12,11 +10,9 @@ import io.provenance.invoice.util.enums.ExpectedPayableType
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.eventstream.external.StreamEvent
 import io.provenance.invoice.util.extension.attributeValueI
-import io.provenance.invoice.util.extension.checkNotNullI
 import io.provenance.invoice.util.extension.unpackInvoiceI
 import io.provenance.invoice.util.provenance.PayableContractKey
 import io.provenance.invoice.util.validation.InvoiceValidator
-import io.provenance.scope.encryption.domain.inputstream.DIMEInputStream
 import io.provenance.scope.sdk.extensions.resultHash
 import mu.KLogging
 import org.springframework.stereotype.Service
@@ -88,6 +84,7 @@ class EventHandlerService(
         objectStore
             .osClient
             .get(hash = assetHash, publicKey = objectStore.oracleAccountDetail.publicKey)
+            // Timeout after two minutes of failure to retrieve object
             .get(2, TimeUnit.MINUTES)
             .getDecryptedPayload(objectStore.oracleAccountDetail.keyRef)
             .use { signatureStream ->
@@ -112,7 +109,23 @@ class EventHandlerService(
     }
 
     fun handleOracleApprovedEvent(event: IncomingInvoiceEvent) {
-        logger.info("Handling oracle approved event")
+        val logPrefix = "ORACLE APPROVAL [${event.invoiceUuid}]:"
+        logger.info("$logPrefix Handling oracle approved event")
+        when (val status = invoiceRepository.findDtoByUuid(event.invoiceUuid).status) {
+            InvoiceStatus.APPROVED -> {
+                logger.info("Skipping duplicate approval for invoice [${event.invoiceUuid}] and event hash [${event.streamEvent.txHash}]")
+                return
+            }
+            InvoiceStatus.REJECTED -> {
+                logger.error("Received oracle approval for rejected invoice [${event.invoiceUuid}] and event hash [${event.streamEvent.txHash}]. Skipping processing")
+                return
+            }
+            else -> {
+                logger.info("Processing oracle approval for invoice [${event.invoiceUuid}] with status [$status] and event hash [${event.streamEvent.txHash}]")
+            }
+        }
+        invoiceRepository.update(uuid = event.invoiceUuid, status = InvoiceStatus.APPROVED)
+        logger.info("$logPrefix Successfully marked invoice as oracle approved")
     }
 
     fun handlePaymentMadeEvent(event: IncomingInvoiceEvent) {

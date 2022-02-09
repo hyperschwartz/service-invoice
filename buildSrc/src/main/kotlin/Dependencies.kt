@@ -61,6 +61,7 @@ object Dependencies {
         val CoroutinesCoreJvm = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", Versions.KotlinCoroutines)
         val CoroutinesReactor = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-reactor", Versions.KotlinCoroutines)
         val CoroutinesJdk8 = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", Versions.KotlinCoroutines)
+        val CoroutinesSLF4J = DependencySpec("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", Versions.KotlinCoroutines)
     }
 
     // Spring

@@ -50,6 +50,7 @@ dependencies {
         Dependencies.Kotlin.CoroutinesCoreJvm,
         Dependencies.Kotlin.CoroutinesJdk8,
         Dependencies.Kotlin.CoroutinesReactor,
+        Dependencies.Kotlin.CoroutinesSLF4J,
         Dependencies.Kotlin.Reflect,
         Dependencies.Kotlin.StdLibJdk8,
         Dependencies.KotlinLogging,
