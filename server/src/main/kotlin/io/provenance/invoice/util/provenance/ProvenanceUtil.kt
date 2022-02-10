@@ -2,6 +2,7 @@ package io.provenance.invoice.util.provenance
 
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.AssetProtos.AssetType
+import io.provenance.invoice.util.extension.tryOrNullI
 import io.provenance.scope.util.Bech32
 import java.security.MessageDigest
 
@@ -46,4 +47,6 @@ object ProvenanceUtil {
         .take(MARKER_ENCODING_TRUNCATE_LENGTH)
         .toByteArray()
         .let { truncatedBytes -> Bech32.encode(hrp = hrp, eightBitData = truncatedBytes) }
+
+    fun isBech32AddressValid(address: String): Boolean = tryOrNullI { Bech32.decode(address) } != null
 }

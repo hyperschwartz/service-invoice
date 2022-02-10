@@ -2,6 +2,8 @@ package io.provenance.invoice.util.provenance
 
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class TestProvenanceUtil {
     private companion object {
@@ -48,6 +50,32 @@ class TestProvenanceUtil {
             expected = "pb$SOURCE_ADDRESS_BODY$expectedMainNetCheckSum",
             actual = ProvenanceUtil.generateMarkerAddressForDenom(SAMPLE_DENOM, "pb"),
             message = "Expected the mainnet output to be derived with the appropriate algorithm",
+        )
+    }
+
+    @Test
+    fun testIsBech32AddressValid() {
+        val validTestNetAddress = "tp${SOURCE_ADDRESS_BODY}d30rdv"
+        val validMainNetAddress = "pb${SOURCE_ADDRESS_BODY}76200x"
+        assertTrue(
+            actual = ProvenanceUtil.isBech32AddressValid(validTestNetAddress),
+            message = "Expected a valid testnet address to return true",
+        )
+        assertTrue(
+            actual = ProvenanceUtil.isBech32AddressValid(validMainNetAddress),
+            message = "Expected a valid mainnet address to return true",
+        )
+        assertFalse(
+            actual = ProvenanceUtil.isBech32AddressValid("fakestuff"),
+            message = "Expected an invalid address to return false",
+        )
+        assertFalse(
+            actual = ProvenanceUtil.isBech32AddressValid("tpblahblahblahblah"),
+            message = "Expected an invalid testnet address to return false",
+        )
+        assertFalse(
+            actual = ProvenanceUtil.isBech32AddressValid("pbblahblahblahblah"),
+            message = "Expected an invalid mainnet address to return false",
         )
     }
 }

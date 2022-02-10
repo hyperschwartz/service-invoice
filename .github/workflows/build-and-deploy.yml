@@ -50,6 +50,12 @@ jobs:
                   name: server
                   path: server/build/libs/*.jar
 
+            - name: Upload proto Artifact
+              uses: actions.upload-artifact@v2
+              with:
+                  name: proto
+                  path: proto/build/libs/*.jar
+
     docker_build:
         name: Build and Push to GitHub Docker Package Registry
         needs: java_build

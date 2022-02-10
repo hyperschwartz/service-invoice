@@ -1,6 +1,6 @@
 package io.provenance.invoice.test.service
 
-import helper.MockProtoUtil
+import helper.MockInvoiceUtil
 import helper.TestConstants
 import io.provenance.invoice.services.InvoiceService
 import io.provenance.invoice.services.OnboardInvoiceRequest
@@ -21,7 +21,7 @@ class InvoiceServiceTest : IntTestBase() {
 
     @Test
     fun testInvoiceOnboard() {
-        val invoice = MockProtoUtil.getMockInvoice()
+        val invoice = MockInvoiceUtil.getMockInvoice()
         val response = invoiceService.onboardInvoice(
             request = OnboardInvoiceRequest(
                 invoice = invoice,

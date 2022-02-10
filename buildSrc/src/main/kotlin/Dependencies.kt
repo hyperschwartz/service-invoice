@@ -5,6 +5,7 @@ import org.gradle.kotlin.dsl.exclude
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 object Versions {
+    const val Arrow = "1.0.1"
     const val BouncyCastle = "1.68"
     const val Exposed = "0.37.3"
     const val Feign = "10.1.0"
@@ -136,6 +137,10 @@ object Dependencies {
         val Scarlet = DependencySpec("com.tinder.scarlet:scarlet", Versions.Scarlet)
         val StreamAdapterRxJava = DependencySpec("com.tinder.scarlet:stream-adapter-rxjava2", Versions.Scarlet)
         val WebSocketOkHttp = DependencySpec("com.tinder.scarlet:websocket-okhttp", Versions.Scarlet)
+    }
+
+    object Arrow {
+        val Core = DependencySpec("io.arrow-kt:arrow-core", Versions.Arrow)
     }
 
     val BouncyCastle = DependencySpec("org.bouncycastle:bcprov-jdk15on", Versions.BouncyCastle)

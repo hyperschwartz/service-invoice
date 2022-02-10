@@ -12,6 +12,7 @@ import io.provenance.invoice.util.extension.toAssetI
 import io.provenance.invoice.util.extension.toProtoAnyI
 import io.provenance.invoice.util.extension.toUuidI
 import io.provenance.invoice.util.validation.InvoiceValidator
+import io.provenance.invoice.util.validation.ValidatedInvoice
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -22,11 +23,10 @@ class InvoiceService(
 ) {
     private companion object : KLogging()
 
-    // TODO: Return onboarding API results for the invoice instead of just validate / insert / return
     fun onboardInvoice(request: OnboardInvoiceRequest): OnboardInvoiceResponse {
         // Ensure first that the invoice is of a valid format
         logger.info("Validating received invoice with uuid [${request.invoice.invoiceUuid.value}] has not yet been boarded")
-        InvoiceValidator.validateInvoice(request.invoice)
+        ValidatedInvoice.new(request.invoice).generateValidationReport().throwFailures()
         logger.info("Verifying invoice with uuid [${request.invoice.invoiceUuid.value}] has not yet been boarded")
         // Verify an invoice with the same uuid does not exist
         check(invoiceRepository.findByUuidOrNull(request.invoice.invoiceUuid.toUuidI()) == null) { "Requested invoice uuid [${request.invoice.invoiceUuid.value}] matches previously uploaded invoice" }

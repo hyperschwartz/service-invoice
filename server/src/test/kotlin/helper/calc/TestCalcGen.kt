@@ -5,7 +5,7 @@ import io.provenance.invoice.calculator.InvoiceCalculator
 import io.provenance.invoice.domain.dto.InvoiceDto
 import io.provenance.invoice.domain.dto.PaymentDto
 import io.provenance.invoice.util.enums.InvoiceStatus
-import io.provenance.invoice.util.validation.InvoiceValidator
+import io.provenance.invoice.util.validation.ValidatedInvoice
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -21,7 +21,7 @@ data class TestCalcGen internal constructor(
         ): TestCalcGen {
             val invoiceDto = testInvoice.toDto(startingInvoiceStatus)
             // Ensure invoices added to the TestCalcGen are always valid, preventing bad test code from running
-            InvoiceValidator.validateInvoice(invoiceDto.invoice)
+            ValidatedInvoice.new(invoiceDto.invoice).generateValidationReport().throwFailures()
             return TestCalcGen(testInvoice.toDto(startingInvoiceStatus), emptyList())
         }
     }

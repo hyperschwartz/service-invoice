@@ -34,6 +34,7 @@ dependencies {
     implementation(project(":migrations"))
     implementation(project(":proto"))
     listOf(
+        Dependencies.Arrow.Core,
         Dependencies.BouncyCastle,
         Dependencies.Database.Exposed,
         Dependencies.Database.ExposedDao,

@@ -13,7 +13,6 @@ import java.util.UUID
  * test-containers is added to the properties on init.  By default, the property is enabled, and this functionality
  * will execute to create a simulated environment.
  *
- * TODO: Add a test container for simulating responses from service-asset-onboarding.
  */
 class TestContainersInit : ApplicationContextInitializer<ConfigurableApplicationContext> {
     private companion object : KLogging() {
