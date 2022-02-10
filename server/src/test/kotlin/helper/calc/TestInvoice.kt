@@ -1,5 +1,6 @@
 package helper.calc
 
+import helper.MockInvoiceUtil
 import helper.calc.TestLineItem.TestLineItemBuilder
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.LineItem
@@ -57,12 +58,12 @@ data class TestInvoice internal constructor(
 
         fun build(): TestInvoice = TestInvoice(
             invoiceUuid = this.invoiceUuid ?: UUID.randomUUID(),
-            fromAddress = this.fromAddress ?: "sender",
-            toAddress = this.toAddress ?: "receiver",
+            fromAddress = this.fromAddress ?: MockInvoiceUtil.DEFAULT_FROM_ADDRESS,
+            toAddress = this.toAddress ?: MockInvoiceUtil.DEFAULT_TO_ADDRESS,
             createdDate = this.createdDate ?: LocalDate.now(),
             dueDate = this.dueDate ?: LocalDate.now().plusMonths(3),
             description = this.description ?: "Invoice for money receiving",
-            paymentDenom = this.paymentDenom ?: "nhash",
+            paymentDenom = this.paymentDenom ?: MockInvoiceUtil.DEFAULT_PAYMENT_DENOM,
             lineItems = this.lineItems.takeUnless { it.isEmpty() } ?: TestLineItem.default().wrapListI(),
         )
     }
@@ -125,10 +126,10 @@ data class TestLineItem internal constructor(
 
         fun build(): TestLineItem = TestLineItem(
             lineUuid = this.lineUuid ?: UUID.randomUUID(),
-            name = this.name ?: "Payment for Things",
-            description = this.description ?: "A requirement is that things are paid",
-            quantity = quantity ?: 1,
-            price = price ?: "100".toBigDecimal(),
+            name = this.name ?: MockInvoiceUtil.DEFAULT_LINE_NAME,
+            description = this.description ?: MockInvoiceUtil.DEFAULT_LINE_DESCRIPTION,
+            quantity = quantity ?: MockInvoiceUtil.DEFAULT_LINE_QUANTITY,
+            price = price ?: MockInvoiceUtil.DEFAULT_LINE_PRICE,
         )
     }
 

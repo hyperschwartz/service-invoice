@@ -12,7 +12,6 @@ import java.math.BigDecimal
 import java.time.OffsetDateTime
 import java.util.UUID
 
-// TODO: Add current owed based on received values from event stream
 data class InvoiceDto(
     val uuid: UUID,
     val invoice: Invoice,

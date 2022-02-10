@@ -1,6 +1,6 @@
 package io.provenance.invoice.test.repository
 
-import helper.MockProtoUtil
+import helper.MockInvoiceUtil
 import helper.assertEqualsBD
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.domain.dto.InvoiceDto
@@ -76,7 +76,7 @@ class PaymentRepositoryIntTest : IntTestBase() {
     }
 
     private fun insertInvoice(
-        invoice: Invoice = MockProtoUtil.getMockInvoice(),
+        invoice: Invoice = MockInvoiceUtil.getMockInvoice(),
         status: InvoiceStatus = InvoiceStatus.APPROVED,
     ): InvoiceDto = invoiceRepository.insert(
         invoice = invoice,

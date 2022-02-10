@@ -1,5 +1,7 @@
 package io.provenance.invoice.services
 
+import arrow.core.Either
+import arrow.core.getOrHandle
 import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.config.provenance.ObjectStore
 import io.provenance.invoice.factory.InvoiceCalcFactory
@@ -18,7 +20,6 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.util.UUID
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 @Service
@@ -43,12 +44,10 @@ class EventHandlerService(
             // Payments should only be allowed for oracle-approved invoices
             InvoiceStatus.APPROVED,
         )
-
-        private val HANDLER_THREAD_POOL = Executors.newFixedThreadPool(10)
     }
 
     fun handleEvent(event: StreamEvent, isRetry: Boolean = false) {
-        try {
+        Either.catch {
             // Payable type should be emitted by all events
             val payableType = event.attributeValueI<String>(PayableContractKey.PAYABLE_TYPE)
             if (payableType != ExpectedPayableType.INVOICE.contractName) {
@@ -66,7 +65,7 @@ class EventHandlerService(
                 PayableContractKey.ORACLE_APPROVED.contractName in eventKeys -> handleOracleApprovedEvent(incomingEvent)
                 PayableContractKey.PAYMENT_MADE.contractName in eventKeys -> handlePaymentMadeEvent(incomingEvent)
             }
-        } catch (e: Exception) {
+        }.getOrHandle { e ->
             logger.error("Failed to process event with hash [${event.txHash}] and type [${event.eventType}] at height [${event.height}]", e)
             handleFailedInvoiceEvent(txHash = event.txHash, isRetry = isRetry)
         }
@@ -90,7 +89,7 @@ class EventHandlerService(
             .use { signatureStream ->
                 val messageBytes = signatureStream.readAllBytes()
                 val targetInvoice = Asset.parseFrom(messageBytes).unpackInvoiceI()
-                try {
+                Either.catch {
                     InvoiceValidator.validateInvoiceForApproval(
                         invoiceDto = invoiceDto,
                         objectStoreInvoice = targetInvoice,
@@ -98,13 +97,20 @@ class EventHandlerService(
                         eventTotalOwed = event.streamEvent.attributeValueI(PayableContractKey.TOTAL_OWED),
                         eventInvoiceDenom = event.streamEvent.attributeValueI(PayableContractKey.REGISTERED_DENOM),
                     )
-                } catch (e: Exception) {
-                    logger.error("$logPrefix Failed validation. Marking rejected", e)
-                    invoiceRepository.update(uuid = event.invoiceUuid, status = InvoiceStatus.REJECTED)
-                    return
-                }
-                logger.info("$logPrefix Successfully validated invoice from object store")
-                provenanceQueryService.submitOracleApproval(event.invoiceUuid, logPrefix)
+                }.fold(
+                    ifLeft = { t ->
+                        logger.error("$logPrefix Failed validation. Marking rejected", t)
+                        invoiceRepository.update(uuid = event.invoiceUuid, status = InvoiceStatus.REJECTED)
+                    },
+                    ifRight = {
+                        logger.info("$logPrefix Successfully validated invoice from object store")
+                        provenanceQueryService.submitOracleApproval(event.invoiceUuid, logPrefix)
+                            .getOrHandle { oracleApprovalException ->
+                                invoiceRepository.update(uuid = event.invoiceUuid, status = InvoiceStatus.APPROVAL_FAILURE)
+                                throw oracleApprovalException
+                            }
+                    }
+                )
             }
     }
 
@@ -155,9 +161,6 @@ class EventHandlerService(
             paymentAmount = event.streamEvent.attributeValueI(PayableContractKey.PAYMENT_AMOUNT),
         )
     }
-
-    private fun handleFailedInvoiceEvent(event: IncomingInvoiceEvent): Unit =
-        handleFailedInvoiceEvent(event.streamEvent.txHash, event.isRetry)
 
     private fun handleFailedInvoiceEvent(txHash: String, isRetry: Boolean) {
         if (!isRetry) {

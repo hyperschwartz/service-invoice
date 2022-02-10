@@ -1,11 +1,14 @@
 package io.provenance.invoice.util.validation
 
+import arrow.core.Validated
+import arrow.core.andThen
+import arrow.core.invalid
+import arrow.core.valid
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.LineItem
 import io.provenance.invoice.domain.dto.InvoiceDto
 import io.provenance.invoice.util.enums.ExpectedDenom
-import io.provenance.invoice.util.extension.checkI
-import io.provenance.invoice.util.extension.checkNotNullI
+import io.provenance.invoice.util.extension.elvisI
 import io.provenance.invoice.util.extension.isAfterInclusiveI
 import io.provenance.invoice.util.extension.isBeforeInclusiveI
 import io.provenance.invoice.util.extension.scopeIdI
@@ -13,59 +16,175 @@ import io.provenance.invoice.util.extension.toBigDecimalOrNullI
 import io.provenance.invoice.util.extension.toLocalDateOrNullI
 import io.provenance.invoice.util.extension.toUuidOrNullI
 import io.provenance.invoice.util.extension.totalAmountI
+import io.provenance.invoice.util.provenance.ProvenanceUtil
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
 
-object InvoiceValidator {
-    fun validateInvoice(invoice: Invoice) {
-        // Verify UUID is formatted correctly
-        val invoiceUuid = invoice.invoiceUuid.toUuidOrNullI()
-        checkNotNull(invoiceUuid) { "Invoice provided has an invalid invoiceUuid value [${invoice.invoiceUuid.value}]" }
+sealed class InvoiceValidationError(override val fieldName: String, override val errorMessage: String) : ArrowValidationError {
+    // Top-level invoice errors
+    class InvalidInvoiceUuid(value: String) : InvoiceValidationError("invoiceUuid", "Non-uuid value provided: [$value]")
+    object InvalidInvoiceFromAddress : InvoiceValidationError("fromAddress", "Must be in Bech32 format")
+    object InvalidInvoiceToAddress : InvoiceValidationError("toAddress", "Must be populated")
+    class InvalidInvoiceCreatedDate(value: String) : InvoiceValidationError("createdDate", "Non-date value provided: [$value]")
+    object FutureInvoiceCreatedDate : InvoiceValidationError("createdDate", "Must not be in the future")
+    class InvalidInvoiceDueDate(value: String) : InvoiceValidationError("dueDate", "Non-date value provided: [$value]")
+    class InvoiceDueDateBeforeCreatedDate(createdDate: LocalDate, dueDate: LocalDate) : InvoiceValidationError("dueDate", "Must not come before created date: [$createdDate] > [$dueDate]")
+    object InvalidInvoiceDescription : InvoiceValidationError("description", "Must be populated")
+    class InvalidInvoiceDenom(value: String) : InvoiceValidationError("paymentDenom", "Unexpected value provided: [$value]")
+    object NoLineItems : InvoiceValidationError("lineItems", "At least one must be present")
+    class InvalidLineItemTotal(total: BigDecimal) : InvoiceValidationError("lineItems", "Total must be greater than zero, but was [$total]")
 
-        val errorPrefix = "Validation for invoice [$invoiceUuid] failed:"
+    // Line item errors
+    class InvalidLineUuid(value: String) : InvoiceValidationError("lineUuid", "Non-uuid value provided: [$value]")
+    object InvalidLineName : InvoiceValidationError("name", "Must be populated")
+    object InvalidLineDescription : InvoiceValidationError("description", "Must be populated")
+    class InvalidLineQuantity(quantity: Int) : InvoiceValidationError("quantity", "Must have at least 1, but was [$quantity]")
+    class InvalidLinePrice(value: String) : InvoiceValidationError("price", "Must be a valid number, but was [$value]")
+    class LinePriceTooLow(price: BigDecimal) : InvoiceValidationError("price", "Must be greater than zero, but was [$price]")
+}
 
-        // Verify that addresses are properly formatted
-        // TODO: Use some magic util to make sure these are actual provenance addresses unless test mode is on or something
-        check(invoice.fromAddress.isNotBlank()) { "$errorPrefix The sender address must not be blank" }
-        check(invoice.toAddress.isNotBlank()) { "$errorPrefix The receiver address must not be blank" }
+class ValidatedInvoice internal constructor(
+    private val invoice: Invoice,
+    private val now: LocalDate = LocalDate.now()
+) : ArrowValidator<InvoiceValidationError>() {
+    companion object {
+        fun new(invoice: Invoice): ValidatedInvoice = ValidatedInvoice(invoice)
+    }
 
-        // Verify that created / due dates are properly formatted
-        val today = LocalDate.now()
-        val createdDate = invoice.invoiceCreatedDate.toLocalDateOrNullI().checkNotNullI { "$errorPrefix Created date was not provided" }
-        check(createdDate.isBeforeInclusiveI(LocalDate.now())) { "$errorPrefix Created date [$createdDate] cannot be in the future [today: $today]" }
-        invoice.invoiceDueDate.toLocalDateOrNullI().also { dueDate ->
-            checkNotNull(dueDate) { "$errorPrefix Due date was not provided" }
-            check(dueDate.isAfterInclusiveI(createdDate)) { "$errorPrefix Due date [$dueDate] cannot come before the created date [$createdDate]" }
+    override fun getFailurePrefix(): String = "Validation for invoice [${invoice.invoiceUuid.value}] failed"
+
+    val uuid: Validated<InvoiceValidationError, UUID> = invoice
+        .invoiceUuid
+        .toUuidOrNullI()
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidInvoiceUuid(invoice.invoiceUuid.value).invalid() }
+        .bindValidation()
+
+    val fromAddress: Validated<InvoiceValidationError, String> = invoice
+        .fromAddress
+        .takeIf(ProvenanceUtil::isBech32AddressValid)
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidInvoiceFromAddress.invalid() }
+        .bindValidation()
+
+    val toAddress: Validated<InvoiceValidationError, String> = invoice
+        .toAddress
+        .takeIf { it.isNotBlank() }
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidInvoiceToAddress.invalid() }
+        .bindValidation()
+
+    val createdDate: Validated<InvoiceValidationError, LocalDate> = invoice
+        .invoiceCreatedDate
+        .toLocalDateOrNullI()
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidInvoiceCreatedDate(invoice.invoiceCreatedDate.value).invalid() }
+        .andThen { createdDate ->
+            createdDate.takeIf { it.isBeforeInclusiveI(now) }?.valid()
+                ?: InvoiceValidationError.FutureInvoiceCreatedDate.invalid()
         }
+        .bindValidation()
 
-        // Verify that string qualifiers are defined
-        check(invoice.description.isNotBlank()) { "$errorPrefix The description must not be blank" }
-        check(invoice.paymentDenom in ExpectedDenom.ALL_EXPECTED_NAMES) { "$errorPrefix Unexpected denom: [${invoice.paymentDenom}]" }
+    val dueDate: Validated<InvoiceValidationError, LocalDate> = invoice
+        .invoiceDueDate
+        .toLocalDateOrNullI()
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidInvoiceDueDate(invoice.invoiceDueDate.value).invalid() }
+        .andThen { dueDate ->
+            createdDate.fold(
+                // If created date was invalid and not derived as a LocalDate, then no extra validation can occur
+                fe = { dueDate.valid() },
+                // Otherwise, we can check to see if the created date > due date
+                fa = { createdDate ->
+                    dueDate.takeIf { it.isAfterInclusiveI(createdDate) }?.valid()
+                        ?: InvoiceValidationError.InvoiceDueDateBeforeCreatedDate(createdDate, dueDate).invalid()
+                }
+            )
+        }
+        .bindValidation()
 
-        // Verify line items
-        check(invoice.lineItemsList.isNotEmpty()) { "$errorPrefix Invoice contained no line items" }
-        val invoiceTotal = invoice.totalAmountI()
-        check(invoiceTotal > BigDecimal.ZERO) { "$errorPrefix Invoice charge sum [$invoiceTotal] must be greater than zero" }
-        invoice.lineItemsList.forEach { validateLineItem(invoiceUuid, it) }
+    val description: Validated<InvoiceValidationError, String> = invoice
+        .description
+        .takeIf { it.isNotBlank() }
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidInvoiceDescription.invalid() }
+        .bindValidation()
+
+    val paymentDenom: Validated<InvoiceValidationError, String> = invoice
+        .paymentDenom
+        .takeIf { it in ExpectedDenom.ALL_EXPECTED_NAMES }
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidInvoiceDenom(invoice.paymentDenom).invalid() }
+        .bindValidation()
+
+    val lineItemCheck: Validated<InvoiceValidationError, List<LineItem>> = invoice
+        .lineItemsList
+        .takeIf { it.isNotEmpty() }
+        ?.valid()
+        .elvisI { InvoiceValidationError.NoLineItems.invalid() }
+        .andThen { lineItems ->
+            val invoiceTotal = invoice.totalAmountI()
+            lineItems.takeIf { invoiceTotal > BigDecimal.ZERO }?.valid()
+                ?: InvoiceValidationError.InvalidLineItemTotal(invoiceTotal).invalid()
+        }
+        .bindValidation()
+
+    val validatedLineItems: List<ValidatedLineItem> = invoice
+        .lineItemsList
+        .map(::ValidatedLineItem)
+        .onEach { validatedLineItem -> bindValidationsFrom(validatedLineItem) }
+}
+
+class ValidatedLineItem internal constructor(private val lineItem: LineItem) : ArrowValidator<InvoiceValidationError>() {
+
+    companion object {
+        fun new(lineItem: LineItem): ValidatedLineItem = ValidatedLineItem(lineItem)
     }
 
-    fun validateLineItem(invoiceUuid: UUID, lineItem: LineItem) {
-        // Verify UUID is formatted correctly
-        val lineUuid = lineItem.lineUuid.toUuidOrNullI()
-        checkNotNull(lineUuid) { "Invoice [$invoiceUuid] Line Item with name [${lineItem.name}] and description [${lineItem.description}] had no uuid" }
+    override fun getFailurePrefix(): String = "Validation for line item [${lineItem.lineUuid.value}] failed"
 
-        val errorPrefix = "Validation for invoice [$invoiceUuid] line [$lineUuid] w/ name [${lineItem.name}] failed:"
+    val uuid: Validated<InvoiceValidationError, UUID> = lineItem
+        .lineUuid
+        .toUuidOrNullI()
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidLineUuid(lineItem.lineUuid.value).invalid() }
+        .bindValidation()
 
-        // Verify that name is set
-        check(lineItem.name.isNotBlank()) { "$errorPrefix The name must be provided" }
-        check(lineItem.description.isNotBlank()) { "$errorPrefix The description must be provided" }
-        check(lineItem.quantity > 0) { "$errorPrefix Each line item must have a quantity of at least one. Provided: [${lineItem.quantity}]" }
-        lineItem.price.toBigDecimalOrNullI()
-            .checkNotNullI { "$errorPrefix Each line item must have a defined price, but was [${lineItem.price.value}]" }
-            .checkI({ it > BigDecimal.ZERO }) { "$errorPrefix Each line item must have a price greater than zero, but was [${lineItem.price.value}]" }
-    }
+    val name: Validated<InvoiceValidationError, String> = lineItem
+        .name
+        .takeIf { it.isNotBlank() }
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidLineName.invalid() }
+        .bindValidation()
 
+    val description: Validated<InvoiceValidationError, String> = lineItem
+        .description
+        .takeIf { it.isNotBlank() }
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidLineDescription.invalid() }
+        .bindValidation()
+
+    val quantity: Validated<InvoiceValidationError, Int> = lineItem
+        .quantity
+        .takeIf { it > 0 }
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidLineQuantity(lineItem.quantity).invalid() }
+        .bindValidation()
+
+    val price: Validated<InvoiceValidationError, BigDecimal> = lineItem
+        .price
+        .toBigDecimalOrNullI()
+        ?.valid()
+        .elvisI { InvoiceValidationError.InvalidLinePrice(lineItem.price.value).invalid() }
+        .andThen { price ->
+            price.takeIf { it > BigDecimal.ZERO }?.valid()
+                ?: InvoiceValidationError.LinePriceTooLow(price).invalid()
+        }
+        .bindValidation()
+}
+
+object InvoiceValidator {
     fun validateInvoiceForApproval(
         invoiceDto: InvoiceDto,
         objectStoreInvoice: Invoice,
@@ -75,7 +194,7 @@ object InvoiceValidator {
     ) {
         val errorPrefix = "ORACLE APPROVAL VALIDATION [${invoiceDto.uuid}]:"
         check(invoiceDto.invoice.matches(objectStoreInvoice)) { "$errorPrefix DB invoice has mismatched fields with object store invoice" }
-        validateInvoice(objectStoreInvoice)
+        ValidatedInvoice.new(objectStoreInvoice).generateValidationReport().throwFailures()
         check(invoiceDto.writeScopeRequest.scopeIdI() == eventScopeId) { "$errorPrefix DB invoice scope id [${invoiceDto.writeScopeRequest.scopeIdI()}] did not match event scope id [$eventScopeId]" }
         check(invoiceDto.totalOwed == eventTotalOwed) { "$errorPrefix DB invoice total owed did not match event total owed [$eventTotalOwed]" }
         check(invoiceDto.invoice.paymentDenom == eventInvoiceDenom)

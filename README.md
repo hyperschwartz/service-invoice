@@ -27,7 +27,7 @@ export USE_SIMULATED_ASSET_ONBOARDING=true
 ```
 2. Add an api key to requests (before running the app, export the api key in the terminal):
 ```shell
-export ONBOARDING_API_KEY=ask-develops-for-this-value-if-you-need-it
+export ONBOARDING_API_KEY=acesss-to-this-app-must-be-requested
 ```
 
 ### Deployment
