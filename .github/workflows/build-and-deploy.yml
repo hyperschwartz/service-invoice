@@ -51,7 +51,7 @@ jobs:
                   path: server/build/libs/*.jar
 
             - name: Upload proto Artifact
-              uses: actions.upload-artifact@v2
+              uses: actions/upload-artifact@v2
               with:
                   name: proto
                   path: proto/build/libs/*.jar
