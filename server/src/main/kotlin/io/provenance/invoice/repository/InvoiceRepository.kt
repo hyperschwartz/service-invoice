@@ -4,6 +4,7 @@ import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.domain.dto.InvoiceDto
 import io.provenance.invoice.domain.entities.InvoiceRecord
 import io.provenance.invoice.domain.entities.InvoiceUpdateQueryParam
+import io.provenance.invoice.domain.entities.InvoiceWritesResponse
 import io.provenance.invoice.domain.exceptions.ResourceNotFoundException
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.stereotype.Repository
@@ -87,4 +88,16 @@ class InvoiceRepository {
 
     fun findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids: Collection<UUID>? = null): List<UUID> =
         transaction { InvoiceRecord.findInvoiceUuidsWithFailedOracleApprovals(onlyIncludeUuids) }
+
+    fun findWritesOrNull(invoiceUuid: UUID): InvoiceWritesResponse? =
+        transaction { InvoiceRecord.findWritesOrNull(invoiceUuid) }
+
+    fun findWriteScopeRequestOrNull(invoiceUuid: UUID): MsgWriteScopeRequest? =
+        transaction { InvoiceRecord.findWriteScopeRequestOrNull(invoiceUuid) }
+
+    fun findWriteSessionRequestOrNull(invoiceUuid: UUID): MsgWriteSessionRequest? =
+        transaction { InvoiceRecord.findWriteSessionRequestOrNull(invoiceUuid) }
+
+    fun findWriteRecordRequestOrNull(invoiceUuid: UUID): MsgWriteRecordRequest? =
+        transaction { InvoiceRecord.findWriteRecordRequestOrNull(invoiceUuid) }
 }

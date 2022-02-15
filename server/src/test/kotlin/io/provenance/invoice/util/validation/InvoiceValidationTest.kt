@@ -1,6 +1,5 @@
 package io.provenance.invoice.util.validation
 
-import helper.MockInvoiceUtil
 import helper.assertSucceeds
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.LineItem
@@ -9,6 +8,8 @@ import io.provenance.invoice.util.extension.toBigDecimalOrNullI
 import io.provenance.invoice.util.extension.toLocalDateI
 import io.provenance.invoice.util.extension.toProtoDateI
 import io.provenance.invoice.util.extension.toProtoDecimalI
+import io.provenance.invoice.util.mock.MockInvoice
+import io.provenance.invoice.util.mock.MockLineItem
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -20,7 +21,7 @@ import kotlin.test.assertTrue
 class InvoiceValidationTest {
     @Test
     fun testDefaultInvoiceMockIsValid() {
-        val invoice = MockInvoiceUtil.getMockInvoice()
+        val invoice = MockInvoice.defaultProto()
         assertEquals(
             expected = 1,
             actual = invoice.lineItemsCount,
@@ -33,7 +34,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testDefaultLineItemMockIsValid() {
-        val lineItem = MockInvoiceUtil.getMockLineItem()
+        val lineItem = MockLineItem.defaultProto()
         assertSucceeds("The default mock line item should pass validation") {
             ValidatedLineItem.new(lineItem).generateValidationReport().throwFailures()
         }
@@ -41,7 +42,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testMissingInvoiceUuidFailsValidation() {
-        val badInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().clearInvoiceUuid().build()
+        val badInvoice = MockInvoice.defaultProto().toBuilder().clearInvoiceUuid().build()
         val validated = ValidatedInvoice.new(badInvoice)
         assertFalse(
             actual = validated.uuid.isValid,
@@ -57,7 +58,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testMissingInvoiceFromAddressValidation() {
-        val badInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().clearFromAddress().build()
+        val badInvoice = MockInvoice.defaultProto().toBuilder().clearFromAddress().build()
         val validated = ValidatedInvoice.new(badInvoice)
         assertFalse(
             actual = validated.fromAddress.isValid,
@@ -73,7 +74,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testMissingInvoiceToAddressValidation() {
-        val badInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().clearToAddress().build()
+        val badInvoice = MockInvoice.defaultProto().toBuilder().clearToAddress().build()
         val validated = ValidatedInvoice.new(badInvoice)
         assertFalse(
             actual = validated.toAddress.isValid,
@@ -89,7 +90,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testMissingInvoiceCreatedDateValidation() {
-        val badInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().clearInvoiceCreatedDate().build()
+        val badInvoice = MockInvoice.defaultProto().toBuilder().clearInvoiceCreatedDate().build()
         val validated = ValidatedInvoice.new(badInvoice)
         assertFalse(
             actual = validated.createdDate.isValid,
@@ -106,7 +107,7 @@ class InvoiceValidationTest {
     @Test
     fun testInvoiceCreatedDateAfterTodaysDateValidation() {
         val todaysDate = LocalDate.now()
-        val badInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().setInvoiceCreatedDate(todaysDate.plusDays(1).toProtoDateI()).build()
+        val badInvoice = MockInvoice.defaultProto().toBuilder().setInvoiceCreatedDate(todaysDate.plusDays(1).toProtoDateI()).build()
         val validated = ValidatedInvoice.new(badInvoice)
         assertFalse(
             actual = validated.createdDate.isValid,
@@ -122,7 +123,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testInvoiceDueDateMissingValidation() {
-        val badInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().clearInvoiceDueDate().build()
+        val badInvoice = MockInvoice.defaultProto().toBuilder().clearInvoiceDueDate().build()
         val validated = ValidatedInvoice.new(badInvoice)
         assertFalse(
             actual = validated.dueDate.isValid,
@@ -138,7 +139,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testInvoiceDueDateBeforeCreatedDateValidation() {
-        val badInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().also { invoiceBuilder ->
+        val badInvoice = MockInvoice.defaultProto().toBuilder().also { invoiceBuilder ->
             invoiceBuilder.invoiceDueDate = invoiceBuilder.invoiceCreatedDate.toLocalDateI().minusDays(1).toProtoDateI()
         }.build()
         val validated = ValidatedInvoice.new(badInvoice)
@@ -161,7 +162,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testInvoiceMissingDescriptionValidation() {
-        val badInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().clearDescription().build()
+        val badInvoice = MockInvoice.defaultProto().toBuilder().clearDescription().build()
         val validated = ValidatedInvoice.new(badInvoice)
         assertFalse(
             actual = validated.description.isValid,
@@ -191,16 +192,16 @@ class InvoiceValidationTest {
             assertFails("[$description]: The failed report should throw an exception when requested") { report.throwFailures() }
         }
         testInvalidDenomInvoice(
-            invoice = MockInvoiceUtil.getMockInvoice().toBuilder().clearPaymentDenom().build(),
+            invoice = MockInvoice.defaultProto().toBuilder().clearPaymentDenom().build(),
             description = "Missing payment denom",
         )
         testInvalidDenomInvoice(
-            invoice = MockInvoiceUtil.getMockInvoice().toBuilder().setPaymentDenom("unreasonable denomination sorry").build(),
+            invoice = MockInvoice.defaultProto().toBuilder().setPaymentDenom("unreasonable denomination sorry").build(),
             description = "Unrecognized denom",
         )
         ExpectedDenom.values().forEach { validDenom ->
             assertSucceeds("An invoice with a valid denomination of [${validDenom.expectedName}] should pass validation") {
-                ValidatedInvoice.new(MockInvoiceUtil.getMockInvoice().toBuilder().setPaymentDenom(validDenom.expectedName).build())
+                ValidatedInvoice.new(MockInvoice.defaultProto().toBuilder().setPaymentDenom(validDenom.expectedName).build())
                     .generateValidationReport()
                     .throwFailures()
             }
@@ -209,12 +210,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testInvoiceWithNoLineItemsValidation() {
-        val badInvoice = MockInvoiceUtil.getMockInvoice(lineItemAmount = 0)
-        assertEquals(
-            expected = 0,
-            actual = badInvoice.lineItemsCount,
-            message = "Sanity check: No line items should be rejected when the mock builder gets a request for zero items",
-        )
+        val badInvoice = MockInvoice.defaultProto().toBuilder().clearLineItems().build()
         val validated = ValidatedInvoice.new(badInvoice)
         assertFalse(
             actual = validated.lineItemCheck.isValid,
@@ -244,23 +240,19 @@ class InvoiceValidationTest {
             assertFails("[$description] The failed report should throw an exception when requested") { report.throwFailures() }
         }
         testInvalidLineSumInvoice(
-            invoice = MockInvoiceUtil.getMockInvoice(lineItemAmount = 0).toBuilder().also { invoiceBuilder ->
+            invoice = MockInvoice.defaultProto().toBuilder().also { invoiceBuilder ->
+                invoiceBuilder.clearLineItems()
                 invoiceBuilder.addLineItems(
-                    MockInvoiceUtil.getMockLineItem(
-                        quantity = 1,
-                        price = "-10".toProtoDecimalI(),
-                    )
+                    MockLineItem.builder().quantity(1).price("-10".toBigDecimal()).buildProto()
                 )
             }.build(),
             description = "Negative line item sum",
         )
         testInvalidLineSumInvoice(
-            invoice = MockInvoiceUtil.getMockInvoice(lineItemAmount = 0).toBuilder().also { invoiceBuilder ->
+            invoice = MockInvoice.defaultProto().toBuilder().also { invoiceBuilder ->
+                invoiceBuilder.clearLineItems()
                 invoiceBuilder.addLineItems(
-                    MockInvoiceUtil.getMockLineItem(
-                        quantity = 100,
-                        price = BigDecimal.ZERO.toProtoDecimalI(),
-                    )
+                    MockLineItem.builder().quantity(100).price(BigDecimal.ZERO).buildProto()
                 )
             }.build(),
             description = "Zero line item sum",
@@ -269,7 +261,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testLineItemWithNoUuidValidation() {
-        val badLineItem = MockInvoiceUtil.getMockLineItem().toBuilder().clearLineUuid().build()
+        val badLineItem = MockLineItem.defaultProto().toBuilder().clearLineUuid().build()
         val validated = ValidatedLineItem.new(badLineItem)
         assertFalse(
             actual = validated.uuid.isValid,
@@ -285,7 +277,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testLineItemWithNoNameValidation() {
-        val badLineItem = MockInvoiceUtil.getMockLineItem().toBuilder().clearName().build()
+        val badLineItem = MockLineItem.defaultProto().toBuilder().clearName().build()
         val validated = ValidatedLineItem.new(badLineItem)
         assertFalse(
             actual = validated.name.isValid,
@@ -301,7 +293,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testLineItemWithNoDescriptionValidation() {
-        val badLineItem = MockInvoiceUtil.getMockLineItem().toBuilder().clearDescription().build()
+        val badLineItem = MockLineItem.defaultProto().toBuilder().clearDescription().build()
         val validated = ValidatedLineItem.new(badLineItem)
         assertFalse(
             actual = validated.description.isValid,
@@ -330,7 +322,7 @@ class InvoiceValidationTest {
             )
             assertFails("[$description]: The failed report should throw an exception when requested") { report.throwFailures() }
         }
-        val badLineItem = MockInvoiceUtil.getMockLineItem().toBuilder().setQuantity(0).build()
+        val badLineItem = MockLineItem.builder().quantity(0).buildProto()
         testInvalidQuantityLineItem(
             lineItem = badLineItem,
             description = "Zero quantity line item",
@@ -343,7 +335,7 @@ class InvoiceValidationTest {
 
     @Test
     fun testLineItemWithMissingPriceValidation() {
-        val badLineItem = MockInvoiceUtil.getMockLineItem().toBuilder().clearPrice().build()
+        val badLineItem = MockLineItem.defaultProto().toBuilder().clearPrice().build()
         val validated = ValidatedLineItem.new(badLineItem)
         assertFalse(
             actual = validated.price.isValid,
@@ -372,7 +364,7 @@ class InvoiceValidationTest {
             )
             assertFails("[$description] The failed report should throw an exception when requested") { report.throwFailures() }
         }
-        val badLineItem = MockInvoiceUtil.getMockLineItem(price = BigDecimal.ZERO.toProtoDecimalI())
+        val badLineItem = MockLineItem.builder().price(BigDecimal.ZERO).buildProto()
         assertEquals(
             expected = BigDecimal.ZERO,
             actual = badLineItem.price.toBigDecimalOrNullI(),

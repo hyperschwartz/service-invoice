@@ -5,9 +5,9 @@ import io.provenance.invoice.calculator.InvoiceCalc
 import io.provenance.invoice.config.web.AppHeaders
 import io.provenance.invoice.config.web.AppRoutes
 import io.provenance.invoice.domain.dto.InvoiceDto
+import io.provenance.invoice.domain.entities.InvoiceWritesResponse
 import io.provenance.invoice.factory.InvoiceCalcFactory
 import io.provenance.scope.objectstore.util.base64EncodeString
-import mu.KLogging
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -19,6 +19,9 @@ import io.provenance.invoice.repository.InvoiceRepository
 import io.provenance.invoice.services.InvoiceService
 import io.provenance.invoice.services.OnboardInvoiceRequest
 import io.provenance.invoice.services.OnboardInvoiceResponse
+import io.provenance.metadata.v1.MsgWriteRecordRequest
+import io.provenance.metadata.v1.MsgWriteScopeRequest
+import io.provenance.metadata.v1.MsgWriteSessionRequest
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.web.bind.annotation.RequestParam
 import java.time.OffsetDateTime
@@ -31,8 +34,6 @@ class InvoiceControllerV1(
     private val invoiceRepository: InvoiceRepository,
     private val invoiceService: InvoiceService,
 ) {
-    private companion object : KLogging()
-
     @GetMapping("/{uuid}")
     fun getByUuid(@PathVariable uuid: UUID): String? = invoiceRepository.findByUuidOrNull(uuid)?.toByteArray()?.base64EncodeString()
 
@@ -61,8 +62,21 @@ class InvoiceControllerV1(
         @PathVariable uuid: UUID,
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @RequestParam calcTime: OffsetDateTime?,
     ): InvoiceCalc = invoiceCalcFactory.generate(invoiceUuid = uuid, calcTime = calcTime ?: OffsetDateTime.now())
+
+    @GetMapping("/msg/all/{uuid}")
+    fun getWritesForInvoice(@PathVariable uuid: UUID): InvoiceWritesResponse? = invoiceRepository.findWritesOrNull(uuid)
+
+    @GetMapping("/msg/writeScopeRequest/{uuid}")
+    fun getWriteScopeRequestForInvoice(@PathVariable uuid: UUID): MsgWriteScopeRequest? =
+        invoiceRepository.findWriteScopeRequestOrNull(uuid)
+
+    @GetMapping("/msg/writeSessionRequest/{uuid}")
+    fun getWriteSessionRequestForInvoice(@PathVariable uuid: UUID): MsgWriteSessionRequest? =
+        invoiceRepository.findWriteSessionRequestOrNull(uuid)
+
+    @GetMapping("/msg/writeRecordRequest/{uuid}")
+    fun getWriteRecordRequestForInvoice(@PathVariable uuid: UUID): MsgWriteRecordRequest? =
+        invoiceRepository.findWriteRecordRequestOrNull(uuid)
 }
 
-data class ToAddressRequest(
-    val addresses: List<String>
-)
+data class ToAddressRequest(val addresses: List<String>)

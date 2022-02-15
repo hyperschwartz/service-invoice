@@ -1,9 +1,9 @@
 package io.provenance.invoice.util.extension
 
-import helper.MockInvoiceUtil
 import helper.assertSucceeds
 import io.provenance.invoice.AssetProtos.AssetType
 import io.provenance.invoice.AssetProtosBuilders
+import io.provenance.invoice.util.mock.MockInvoice
 import io.provenance.invoice.util.randomProtoUuidI
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 class AssetExtensionsTest {
     @Test
     fun testUnpackInvoiceFromAsset() {
-        val invoice = MockInvoiceUtil.getMockInvoice()
+        val invoice = MockInvoice.defaultProto()
         val asset = AssetProtosBuilders.Asset {
             id = randomProtoUuidI()
             type = AssetType.NFT.name
@@ -27,7 +27,7 @@ class AssetExtensionsTest {
 
     @Test
     fun testPackInvoiceAsAsset() {
-        val invoice = MockInvoiceUtil.getMockInvoice()
+        val invoice = MockInvoice.defaultProto()
         val asset = invoice.toAssetI()
         assertTrue(actual = asset.id.isSet(), message = "Expected the newly-created asset to get an id")
         assertEquals(expected = asset.type, actual = AssetType.NFT.name, message = "Expected the type to equate to the name of the NFT asset type enum")

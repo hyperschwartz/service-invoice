@@ -1,6 +1,5 @@
 package io.provenance.invoice.test.service
 
-import helper.MockInvoiceUtil
 import helper.TestConstants
 import io.provenance.invoice.services.InvoiceService
 import io.provenance.invoice.services.OnboardInvoiceRequest
@@ -8,6 +7,7 @@ import io.provenance.invoice.testhelpers.IntTestBase
 import io.provenance.invoice.util.extension.toProtoAnyI
 import io.provenance.invoice.util.extension.toUuidI
 import io.provenance.invoice.util.extension.typedUnpackI
+import io.provenance.invoice.util.mock.MockInvoice
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -21,7 +21,7 @@ class InvoiceServiceTest : IntTestBase() {
 
     @Test
     fun testInvoiceOnboard() {
-        val invoice = MockInvoiceUtil.getMockInvoice()
+        val invoice = MockInvoice.defaultProto()
         val response = invoiceService.onboardInvoice(
             request = OnboardInvoiceRequest(
                 invoice = invoice,
@@ -51,9 +51,9 @@ class InvoiceServiceTest : IntTestBase() {
             message = "Expected the invoice denomination to be in nhash. All invoices are created as nhash for now",
         )
         assertEquals(
-            expected = "10".toBigDecimal(),
+            expected = "100".toBigDecimal(),
             actual = response.payablesContractExecutionDetail.invoiceTotal,
-            message = "Expected the invoice total to be the default value from the MockProtoUtil",
+            message = "Expected the invoice total to be the default value from the MockInvoice builder",
         )
         assertEquals(
             expected = MsgWriteScopeRequest.getDefaultInstance().toProtoAnyI().typeUrl,

@@ -1,6 +1,5 @@
 package io.provenance.invoice.test.repository
 
-import helper.MockInvoiceUtil
 import helper.assertEqualsBD
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.domain.dto.InvoiceDto
@@ -10,6 +9,7 @@ import io.provenance.invoice.repository.PaymentRepository
 import io.provenance.invoice.testhelpers.IntTestBase
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.enums.PaymentStatus
+import io.provenance.invoice.util.mock.MockInvoice
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -76,7 +76,7 @@ class PaymentRepositoryIntTest : IntTestBase() {
     }
 
     private fun insertInvoice(
-        invoice: Invoice = MockInvoiceUtil.getMockInvoice(),
+        invoice: Invoice = MockInvoice.defaultProto(),
         status: InvoiceStatus = InvoiceStatus.APPROVED,
     ): InvoiceDto = invoiceRepository.insert(
         invoice = invoice,

@@ -1,4 +1,4 @@
-package helper.calc
+package io.provenance.invoice.util.mock
 
 import io.provenance.invoice.calculator.InvoiceCalc
 import io.provenance.invoice.calculator.InvoiceCalculator
@@ -15,19 +15,19 @@ data class TestCalcGen internal constructor(
     val payments: List<PaymentDto>
 ) {
     companion object {
-        fun fromTestInvoice(
-            testInvoice: TestInvoice,
+        fun fromMockInvoice(
+            mockInvoice: MockInvoice,
             startingInvoiceStatus: InvoiceStatus = InvoiceStatus.APPROVED,
         ): TestCalcGen {
-            val invoiceDto = testInvoice.toDto(startingInvoiceStatus)
+            val invoiceDto = mockInvoice.toDto(startingInvoiceStatus)
             // Ensure invoices added to the TestCalcGen are always valid, preventing bad test code from running
             ValidatedInvoice.new(invoiceDto.invoice).generateValidationReport().throwFailures()
-            return TestCalcGen(testInvoice.toDto(startingInvoiceStatus), emptyList())
+            return TestCalcGen(mockInvoice.toDto(startingInvoiceStatus), emptyList())
         }
     }
 
     fun changeInvoiceStatus(newStatus: InvoiceStatus): TestCalcGen = copy(
-        invoiceDto.copy(status = newStatus),
+        invoiceDto = invoiceDto.copy(status = newStatus),
         payments = payments,
     )
 
