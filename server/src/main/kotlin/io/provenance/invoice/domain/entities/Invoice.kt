@@ -91,6 +91,36 @@ open class InvoiceEntityClass(invoiceTable: InvoiceTable): UUIDEntityClass<Invoi
                         ?: queryClause
                 }
         }.map { it[InvoiceTable.id].value }
+
+    fun findWritesOrNull(invoiceUuid: UUID): InvoiceWritesResponse? = InvoiceTable
+        .slice(InvoiceTable.writeScopeRequest, InvoiceTable.writeSessionRequest, InvoiceTable.writeRecordRequest)
+        .select { InvoiceTable.id eq invoiceUuid }
+        .singleOrNull()
+        ?.let { record ->
+            InvoiceWritesResponse(
+                writeScopeRequest = record[InvoiceTable.writeScopeRequest],
+                writeSessionRequest = record[InvoiceTable.writeSessionRequest],
+                writeRecordRequest = record[InvoiceTable.writeRecordRequest],
+            )
+        }
+
+    fun findWriteScopeRequestOrNull(invoiceUuid: UUID): MsgWriteScopeRequest? = InvoiceTable
+        .slice(InvoiceTable.writeScopeRequest)
+        .select { InvoiceTable.id eq invoiceUuid }
+        .singleOrNull()
+        ?.get(InvoiceTable.writeScopeRequest)
+
+    fun findWriteSessionRequestOrNull(invoiceUuid: UUID): MsgWriteSessionRequest? = InvoiceTable
+        .slice(InvoiceTable.writeSessionRequest)
+        .select { InvoiceTable.id eq invoiceUuid }
+        .singleOrNull()
+        ?.get(InvoiceTable.writeSessionRequest)
+
+    fun findWriteRecordRequestOrNull(invoiceUuid: UUID): MsgWriteRecordRequest? = InvoiceTable
+        .slice(InvoiceTable.writeRecordRequest)
+        .select { InvoiceTable.id eq invoiceUuid }
+        .singleOrNull()
+        ?.get(InvoiceTable.writeRecordRequest)
 }
 
 class InvoiceRecord(uuid: EntityID<UUID>) : UUIDEntity(uuid) {
@@ -125,3 +155,9 @@ sealed interface InvoiceUpdateQueryParam {
         override fun invoiceUuid(): UUID = uuid
     }
 }
+
+data class InvoiceWritesResponse(
+    val writeScopeRequest: MsgWriteScopeRequest,
+    val writeSessionRequest: MsgWriteSessionRequest,
+    val writeRecordRequest: MsgWriteRecordRequest,
+)

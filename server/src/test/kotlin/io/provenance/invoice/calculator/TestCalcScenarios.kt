@@ -3,13 +3,13 @@ package io.provenance.invoice.calculator
 import helper.assertEqualsBD
 import helper.assertSingleI
 import helper.assertZeroBD
-import helper.calc.TestInvoice
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.enums.PaymentStatus
 import io.provenance.invoice.util.extension.toBigDecimalI
 import io.provenance.invoice.util.extension.toLocalDateI
 import io.provenance.invoice.util.extension.toOffsetDateTimeI
 import io.provenance.invoice.util.extension.toUuidI
+import io.provenance.invoice.util.mock.MockInvoice
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -18,7 +18,7 @@ import kotlin.test.assertTrue
 class TestCalcScenarios {
     @Test
     fun testDefaultCalcGen() {
-        val calcGen = TestInvoice.default().toCalcGen()
+        val calcGen = MockInvoice.default().toCalcGen()
         val calcTime = calcGen.invoiceDto.created.plusMinutes(1)
         val calc = calcGen.genCalc(calcTime)
         assertEquals(
@@ -138,7 +138,7 @@ class TestCalcScenarios {
         val totalOwed = "100".toBigDecimal()
         val paymentTime = createdTime.plusDays(3)
         val paymentAmount = "30".toBigDecimal()
-        val calcGen = TestInvoice.builder()
+        val calcGen = MockInvoice.builder()
             .createdDate(createdTime.toLocalDate())
             .addLineForAmount(totalOwed)
             .build()
@@ -231,7 +231,7 @@ class TestCalcScenarios {
         val firstPaymentAmount = "30".toBigDecimal()
         val secondPaymentTime = firstPaymentTime.plusDays(1)
         val secondPaymentAmount = "10".toBigDecimal()
-        val calcGen = TestInvoice.builder()
+        val calcGen = MockInvoice.builder()
             .createdDate(createdTime.toLocalDate())
             .addLineForAmount(totalOwed)
             .build()
@@ -292,7 +292,7 @@ class TestCalcScenarios {
         val createdTime = "2022-01-01T12:00Z".toOffsetDateTimeI()
         val totalOwed = "100".toBigDecimal()
         val paymentTime = createdTime.plusDays(15)
-        val calcGen = TestInvoice.builder()
+        val calcGen = MockInvoice.builder()
             .createdDate(createdTime.toLocalDate())
             .addLineForAmount(totalOwed)
             .build()
@@ -326,7 +326,7 @@ class TestCalcScenarios {
         val dueTime = createdTime.plusMonths(6)
         val totalOwed = "1053".toBigDecimal()
         val paymentTime = dueTime.plusDays(3)
-        val calcGen = TestInvoice.builder()
+        val calcGen = MockInvoice.builder()
             .createdDate(createdTime.toLocalDate())
             .dueDate(dueTime.toLocalDate())
             .addLineForAmount(totalOwed)
@@ -374,7 +374,7 @@ class TestCalcScenarios {
     fun testDelinquentInvoice() {
         val createdTime = "2022-01-01T12:00Z".toOffsetDateTimeI()
         val dueTime = createdTime.plusMonths(6)
-        val calcGen = TestInvoice.builder()
+        val calcGen = MockInvoice.builder()
             .createdDate(createdTime.toLocalDate())
             .dueDate(dueTime.toLocalDate())
             .build()
@@ -413,7 +413,7 @@ class TestCalcScenarios {
     fun testRestrictedPaymentStatus() {
         // All statuses except approved should derive a restricted payment status
         InvoiceStatus.values().toList().minus(InvoiceStatus.APPROVED).forEach { invoiceStatus ->
-            val calc = TestInvoice.default().toCustomCalcGen(startingInvoiceStatus = invoiceStatus).genCalc()
+            val calc = MockInvoice.default().toCustomCalcGen(startingInvoiceStatus = invoiceStatus).genCalc()
             assertEquals(
                 expected = PaymentStatus.RESTRICTED,
                 actual = calc.paymentStatus,

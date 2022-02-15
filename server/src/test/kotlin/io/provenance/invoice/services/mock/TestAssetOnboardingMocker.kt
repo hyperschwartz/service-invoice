@@ -1,8 +1,8 @@
 package io.provenance.invoice.services.mock
 
-import helper.MockInvoiceUtil
 import helper.TestConstants
 import helper.assertSucceeds
+import io.provenance.invoice.util.mock.MockInvoice
 import io.provenance.invoice.util.extension.toAssetI
 import io.provenance.invoice.util.extension.toUuidI
 import org.junit.jupiter.api.Test
@@ -12,7 +12,7 @@ import kotlin.test.assertFails
 class TestAssetOnboardingMocker {
     @Test
     fun testAssetOnboardingMockerBadInput() {
-        val asset = MockInvoiceUtil.getMockInvoice().toAssetI()
+        val asset = MockInvoice.defaultProto().toAssetI()
         assertFails("Attempting to use an invalid public key should fail") {
             AssetOnboardingMocker.mockAssetResponse(
                 asset = asset,
@@ -24,7 +24,7 @@ class TestAssetOnboardingMocker {
 
     @Test
     fun testAssetOnboardingMockerResponses() {
-        val asset = MockInvoiceUtil.getMockInvoice().toAssetI()
+        val asset = MockInvoice.defaultProto().toAssetI()
         val assetUuid = asset.id.toUuidI()
         val response = assertSucceeds("A valid public key and address should produce output") {
             AssetOnboardingMocker.mockAssetResponse(

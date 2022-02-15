@@ -4,7 +4,8 @@ Handles Invoice generation
 ## Running
 
 ### Local
-The application depends on a dedicated database.  To spin up the local database, just run from the root directory:
+The application depends on a dedicated database and redis instance.  To spin up the local database and redis instance,
+just run from the root directory:
 ```shell
 ./localnet.sh up
 ```
@@ -28,6 +29,16 @@ export USE_SIMULATED_ASSET_ONBOARDING=true
 2. Add an api key to requests (before running the app, export the api key in the terminal):
 ```shell
 export ONBOARDING_API_KEY=acesss-to-this-app-must-be-requested
+```
+
+The app also has an automatic event stream to listen for changes in a provenance blockchain environment. To boot a local
+version of provenance blockchain, clone the repository from: https://github.com/provenance-io/provenance
+
+The documentation in the provenance repository is very useful and informative.  I recommend that anyone trying to run it
+locally read through it beforehand.  However, to just get up and running, just navigate to the root folder of that
+cloned repository and run:
+```shell
+make localnet-start
 ```
 
 ### Deployment

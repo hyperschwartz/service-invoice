@@ -1,7 +1,6 @@
 plugins {
     kotlin("jvm") version Versions.Kotlin apply false
     id("java")
-    id("maven-publish")
 }
 
 allprojects {

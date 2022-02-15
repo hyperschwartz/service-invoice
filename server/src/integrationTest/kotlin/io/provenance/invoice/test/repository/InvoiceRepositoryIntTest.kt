@@ -1,6 +1,5 @@
 package io.provenance.invoice.test.repository
 
-import helper.MockInvoiceUtil
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.domain.dto.InvoiceDto
 import org.junit.jupiter.api.Test
@@ -10,6 +9,7 @@ import io.provenance.invoice.testhelpers.IntTestBase
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.extension.toUuidI
 import io.provenance.invoice.util.extension.wrapListI
+import io.provenance.invoice.util.mock.MockInvoice
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
@@ -24,7 +24,7 @@ class InvoiceRepositoryIntTest : IntTestBase() {
 
     @Test
     fun testInvoiceInsertAndReload() {
-        val invoice = MockInvoiceUtil.getMockInvoice()
+        val invoice = MockInvoice.defaultProto()
         val insertedInvoice = insertInvoice(invoice)
         assertEquals(
             expected = invoice,
@@ -49,8 +49,8 @@ class InvoiceRepositoryIntTest : IntTestBase() {
     fun testFindByAddress() {
         val fromAddress = "${UUID.randomUUID()}-sender"
         val toAddress = "${UUID.randomUUID()}-receiver"
-        val firstInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().setFromAddress(fromAddress).setToAddress(toAddress).build()
-        val secondInvoice = MockInvoiceUtil.getMockInvoice().toBuilder().setFromAddress(fromAddress).setToAddress(toAddress).build()
+        val firstInvoice = MockInvoice.builder().fromAddress(fromAddress).toAddress(toAddress).buildProto()
+        val secondInvoice = MockInvoice.builder().fromAddress(fromAddress).toAddress(toAddress).buildProto()
         assertNotEquals(
             illegal = firstInvoice.invoiceUuid.value,
             actual = secondInvoice.invoiceUuid.value,
@@ -58,7 +58,7 @@ class InvoiceRepositoryIntTest : IntTestBase() {
         )
         insertInvoice(firstInvoice)
         insertInvoice(secondInvoice)
-        val foundBySender = invoiceRepository.findAllByFromAddress(fromAddress).map { it.invoiceUuid.toUuidI() }
+        val foundBySender = invoiceRepository.findAllByFromAddress(fromAddress).map { it.uuid }
         assertEquals(
             expected = 2,
             actual = foundBySender.size,
@@ -72,7 +72,7 @@ class InvoiceRepositoryIntTest : IntTestBase() {
             actual = secondInvoice.invoiceUuid.toUuidI() in foundBySender,
             message = "The second invoice should be present in the response list for the sender",
         )
-        val foundByReceiver = invoiceRepository.findAllByToAddress(toAddress).map { it.invoiceUuid.toUuidI() }
+        val foundByReceiver = invoiceRepository.findAllByToAddress(toAddress).map { it.uuid }
         assertEquals(
             expected = 2,
             actual = foundByReceiver.size,
@@ -90,7 +90,7 @@ class InvoiceRepositoryIntTest : IntTestBase() {
 
     @Test
     fun testFailStateRetryQuery() {
-        val invoiceDto = insertInvoice(MockInvoiceUtil.getMockInvoice())
+        val invoiceDto = insertInvoice(MockInvoice.defaultProto())
         assertFalse(
             actual = invoiceDto.uuid in invoiceRepository.findInvoiceUuidsWithFailedOracleApprovals(),
             message = "The invoice dto should not show up in the failed oracle approval statuses when first boarded",
@@ -117,9 +117,9 @@ class InvoiceRepositoryIntTest : IntTestBase() {
     fun testFindAllByToAddresses() {
         val firstToAddress = "first-${UUID.randomUUID()}"
         val secondToAddress = "second-${UUID.randomUUID()}"
-        val firstInvoice = insertInvoice(MockInvoiceUtil.getMockInvoice().toBuilder().setToAddress(firstToAddress).build())
-        val secondInvoice = insertInvoice(MockInvoiceUtil.getMockInvoice().toBuilder().setToAddress(secondToAddress).build())
-        val invoiceUuids = invoiceRepository.findAllByToAddresses(listOf(firstToAddress, secondToAddress)).map { it.invoiceUuid.toUuidI() }
+        val firstInvoice = insertInvoice(MockInvoice.builder().toAddress(firstToAddress).buildProto())
+        val secondInvoice = insertInvoice(MockInvoice.builder().toAddress(secondToAddress).buildProto())
+        val invoiceUuids = invoiceRepository.findAllByToAddresses(listOf(firstToAddress, secondToAddress)).map { it.uuid }
         assertEquals(
             expected = 2,
             actual = invoiceUuids.size,
