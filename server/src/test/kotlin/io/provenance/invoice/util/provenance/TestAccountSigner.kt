@@ -1,7 +1,7 @@
 package io.provenance.invoice.util.provenance
 
 import helper.assertSucceeds
-import io.provenance.hdwallet.ec.toECPrivateKey
+import io.provenance.hdwallet.ec.extensions.toECPrivateKey
 import io.provenance.scope.encryption.ecies.ECUtils
 import org.junit.jupiter.api.Test
 import org.testcontainers.shaded.com.google.common.io.BaseEncoding

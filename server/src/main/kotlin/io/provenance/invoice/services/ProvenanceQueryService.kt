@@ -7,10 +7,11 @@ import cosmos.base.abci.v1beta1.Abci.TxResponse
 import cosmos.tx.v1beta1.ServiceOuterClass.BroadcastMode
 import cosmos.tx.v1beta1.TxOuterClass.TxBody
 import cosmwasm.wasm.v1.Tx.MsgExecuteContract
-import io.provenance.client.PbClient
 import io.provenance.client.grpc.BaseReq
 import io.provenance.client.grpc.BaseReqSigner
 import io.provenance.client.grpc.GasEstimate
+import io.provenance.client.grpc.PbClient
+import io.provenance.client.protobuf.extensions.getBaseAccount
 import io.provenance.invoice.config.provenance.ObjectStore
 import io.provenance.invoice.config.provenance.ProvenanceProperties
 import io.provenance.invoice.domain.provenancetx.OracleApproval
@@ -63,7 +64,7 @@ class ProvenanceQueryService(
      * On a failure, wraps the response error in an OracleApprovalException for upstream handling.
      */
     private fun getOracleAccount(logPrefix: String): Either<OracleApprovalException, BaseAccount> = Either
-        .catch { pbClient.getBaseAccount(objectStore.oracleAccountDetail.bech32Address) }
+        .catch { pbClient.authClient.getBaseAccount(objectStore.oracleAccountDetail.bech32Address) }
         .mapLeftToOracleFailure("$logPrefix Failed to fetch base account for oracle address [${objectStore.oracleAccountDetail.bech32Address}]. Marking invoice with approval failure")
 
     /**

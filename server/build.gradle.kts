@@ -97,7 +97,7 @@ dependencies {
 // Let gradle know that the integration test directory is for test runnin'
 sourceSets {
     create("integrationTest") {
-        compileClasspath += main.get().output + test.get().output + configurations.testCompileClasspath + configurations.testCompileOnly
+        compileClasspath += main.get().output + test.get().output + configurations.testCompileClasspath
         runtimeClasspath += main.get().output + test.get().output + compileClasspath
         java.srcDir("integrationTest")
     }

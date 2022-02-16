@@ -6,18 +6,18 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 
 object Versions {
     const val Arrow = "1.0.1"
-    const val BouncyCastle = "1.68"
+    const val BouncyCastle = "1.70"
     const val Exposed = "0.37.3"
     const val Feign = "10.1.0"
     const val Flyway = "8.0.2"
     const val FrontendHelperPlugin = "6.0.0"
     // Communication with the PbClient requires GRPC to remain versioned in tandem with "ProvenanceClient." Be sure to update this alongside it
-    const val Grpc = "1.42.0"
+    const val Grpc = "1.44.0"
     const val Hikari = "4.0.3"
     const val Jackson = "2.12.5"
     const val JacksonProtobuf = "0.9.12"
     const val JavaX = "1.3.2"
-    const val Kotlin = "1.5.31"
+    const val Kotlin = "1.6.10"
     const val KotlinCoroutines = "1.5.2"
     const val KotlinLogging = "2.1.21"
     const val Kroto = "0.6.1"
@@ -28,10 +28,10 @@ object Versions {
     const val Protobuf = "3.19.1"
     const val ProtobufPlugin = "0.8.16"
     // Both client and proto libraries have coupled versions. Found via inspecting dependencies brought in via client
-    const val ProvenanceClient = "1.0.1"
-    const val ProvenanceHdWallet = "0.1.9"
+    const val ProvenanceClient = "1.0.4"
+    const val ProvenanceHdWallet = "0.1.15"
     // This version is pinned because ProvenanceClient implementation does not bring it along, and matching it allows access to query protos
-    const val ProvenanceProto = "1.7.0-0.0.2"
+    const val ProvenanceProto = "1.8.0-rc7"
     const val ProvenanceScope = "0.4.6"
     const val Scarlet = "0.1.11"
     const val SpringBoot = "2.5.6"
@@ -111,7 +111,7 @@ object Dependencies {
     object Provenance {
         val ProvenanceGrpcClient = DependencySpec("io.provenance.client:pb-grpc-client-kotlin", Versions.ProvenanceClient)
         val ProvenanceHdWallet = DependencySpec("io.provenance.hdwallet:hdwallet", Versions.ProvenanceHdWallet)
-        val ProvenanceProto = DependencySpec("io.provenance.protobuf:pb-proto-java", Versions.ProvenanceProto)
+        val ProvenanceProto = DependencySpec("io.provenance:proto-kotlin", Versions.ProvenanceProto)
         val ScopeSdk = DependencySpec("io.provenance.scope:sdk", Versions.ProvenanceScope)
         val ScopeUtil = DependencySpec("io.provenance.scope:util", Versions.ProvenanceScope)
     }
