@@ -5,10 +5,8 @@ import cosmos.crypto.secp256k1.Keys
 import io.provenance.client.grpc.Signer
 import io.provenance.hdwallet.ec.PrivateKey
 import io.provenance.hdwallet.ec.PublicKey
-import io.provenance.hdwallet.ec.toECKeyPair
-import io.provenance.hdwallet.ec.toECPrivateKey
-import io.provenance.hdwallet.ec.toECPublicKey
-import io.provenance.hdwallet.ec.toJavaPrivateKey
+import io.provenance.hdwallet.ec.extensions.toECPrivateKey
+import io.provenance.hdwallet.ec.extensions.toJavaECPrivateKey
 import io.provenance.hdwallet.signer.BCECSigner
 import io.provenance.scope.encryption.util.getAddress
 import io.provenance.scope.encryption.util.toKeyPair
@@ -24,7 +22,7 @@ class AccountSigner(
     override fun pubKey(): Keys.PubKey =
         Keys.PubKey.newBuilder().setKey(ByteString.copyFrom(publicKey.compressed())).build()
 
-    override fun sign(data: ByteArray): ByteArray = BCECSigner().sign(privateKey, data.sha256()).encodeAsBTC()
+    override fun sign(data: ByteArray): ByteArray = BCECSigner().sign(privateKey, data.sha256()).encodeAsBTC().toByteArray()
 
     companion object {
         fun fromAccountDetail(
@@ -45,7 +43,7 @@ class AccountSigner(
         fun fromWalletPrivateKey(
             privateKey: PrivateKey,
             mainNet: Boolean,
-        ): AccountSigner = privateKey.toJavaPrivateKey().toKeyPair().let { keyPair ->
+        ): AccountSigner = privateKey.toJavaECPrivateKey().toKeyPair().let { keyPair ->
             AccountSigner(
                 address = keyPair.public.getAddress(mainNet),
                 publicKey = privateKey.toPublicKey(),

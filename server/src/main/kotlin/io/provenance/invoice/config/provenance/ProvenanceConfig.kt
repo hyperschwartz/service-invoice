@@ -1,6 +1,6 @@
 package io.provenance.invoice.config.provenance
 
-import io.provenance.client.PbClient
+import io.provenance.client.grpc.PbClient
 import io.provenance.invoice.config.app.Qualifiers
 import io.provenance.invoice.config.app.ServiceProperties
 import io.provenance.invoice.util.provenance.ProvenanceAccountDetail
