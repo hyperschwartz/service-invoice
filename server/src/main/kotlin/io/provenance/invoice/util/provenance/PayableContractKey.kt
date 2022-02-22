@@ -21,7 +21,8 @@ enum class PayableContractKey(val contractName: String, val isEventKey: Boolean)
 
     // All these keys are globally shared and appear on all payable contract events
     PAYABLE_UUID("payable_uuid", false),
-    PAYABLE_TYPE("payable_type", false);
+    PAYABLE_TYPE("payable_type", false),
+    ORACLE_ADDRESS("payable_oracle_address", false);
 
     companion object {
         val EVENT_KEYS: List<PayableContractKey> by lazy { values().filter { it.isEventKey } }

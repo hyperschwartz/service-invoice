@@ -2,6 +2,7 @@ package io.provenance.invoice.services
 
 import com.google.protobuf.Any
 import io.provenance.invoice.InvoiceProtos.Invoice
+import io.provenance.invoice.config.app.Qualifiers
 import mu.KLogging
 import org.springframework.stereotype.Service
 import io.provenance.invoice.repository.InvoiceRepository
@@ -11,8 +12,10 @@ import io.provenance.invoice.util.extension.scopeIdI
 import io.provenance.invoice.util.extension.toAssetI
 import io.provenance.invoice.util.extension.toProtoAnyI
 import io.provenance.invoice.util.extension.toUuidI
+import io.provenance.invoice.util.provenance.ProvenanceAccountDetail
 import io.provenance.invoice.util.validation.InvoiceValidator
 import io.provenance.invoice.util.validation.ValidatedInvoice
+import org.springframework.beans.factory.annotation.Qualifier
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -20,6 +23,7 @@ import java.util.UUID
 class InvoiceService(
     private val assetOnboardingService: AssetOnboardingService,
     private val invoiceRepository: InvoiceRepository,
+    @Qualifier(Qualifiers.ORACLE_ACCOUNT_DETAIL) private val oracleAccountDetail: ProvenanceAccountDetail
 ) {
     private companion object : KLogging()
 
@@ -48,6 +52,7 @@ class InvoiceService(
                 payableType = ExpectedPayableType.INVOICE.contractName,
                 payableUuid = upsertedInvoice.uuid,
                 scopeId = assetOnboardingResponse.writeScopeRequest.scopeIdI(),
+                oracleAddress = oracleAccountDetail.bech32Address,
                 invoiceTotal = upsertedInvoice.totalOwed,
                 invoiceDenom = upsertedInvoice.invoice.paymentDenom,
             ),
@@ -77,6 +82,7 @@ data class PayablesContractExecutionDetail(
     val payableType: String,
     val payableUuid: UUID,
     val scopeId: String,
+    val oracleAddress: String,
     val invoiceDenom: String,
     val invoiceTotal: BigDecimal,
 )

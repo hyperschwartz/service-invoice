@@ -12,6 +12,7 @@ import io.provenance.invoice.util.enums.ExpectedPayableType
 import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.eventstream.external.StreamEvent
 import io.provenance.invoice.util.extension.attributeValueI
+import io.provenance.invoice.util.extension.attributeValueOrNullI
 import io.provenance.invoice.util.extension.unpackInvoiceI
 import io.provenance.invoice.util.provenance.PayableContractKey
 import io.provenance.invoice.util.validation.InvoiceValidator
@@ -54,6 +55,14 @@ class EventHandlerService(
                 logger.info("Ignoring event [${event.txHash}] for non-invoice payable with type [$payableType]")
                 return
             }
+            val oracleAddress = event.attributeValueOrNullI<String>(PayableContractKey.ORACLE_ADDRESS) ?: run {
+                logger.info("Legacy event [${event.txHash}] included no oracle address attribute. Skipping processing")
+                return
+            }
+            if (oracleAddress != objectStore.oracleAccountDetail.bech32Address) {
+                logger.info("Ignoring event [${event.txHash}] for different oracle [$oracleAddress]")
+                return
+            }
             val incomingEvent = IncomingInvoiceEvent(
                 streamEvent = event,
                 invoiceUuid = event.attributeValueI(PayableContractKey.PAYABLE_UUID),
@@ -64,6 +73,11 @@ class EventHandlerService(
                 PayableContractKey.PAYABLE_REGISTERED.contractName in eventKeys -> handleInvoiceRegisteredEvent(incomingEvent)
                 PayableContractKey.ORACLE_APPROVED.contractName in eventKeys -> handleOracleApprovedEvent(incomingEvent)
                 PayableContractKey.PAYMENT_MADE.contractName in eventKeys -> handlePaymentMadeEvent(incomingEvent)
+            }
+            // If this block is reached without exception and it is a retry, it is safe to mark the retryable as processed
+            if (isRetry) {
+                logger.info("Marking retried event with hash [${event.txHash}] as successfully processed")
+                failedEventRepository.markEventProcessed(event.txHash)
             }
         }.getOrHandle { e ->
             logger.error("Failed to process event with hash [${event.txHash}] and type [${event.eventType}] at height [${event.height}]", e)
