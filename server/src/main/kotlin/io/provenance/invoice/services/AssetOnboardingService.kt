@@ -27,7 +27,7 @@ class AssetOnboardingService(
         // use the oracle's public key in the call.  Sending the wallet's address ensures that the wallet owns the
         // newly-created scope, and sending the oracle's public key allows the oracle (an account made specifically for
         // this application) can query object store for the asset, allowing us to validate the invoice
-        return onboardingApi.generateOnboarding(
+        return onboardingApi.onboardPayable(
             address = walletAddress,
             publicKey = oracleAccountDetail.encodedPublicKey,
             asset = asset,
