@@ -23,8 +23,8 @@ interface OnboardingApiClient {
         "${AppHeaders.ADDRESS}: {address}",
         "${AppHeaders.PUBLIC_KEY}: {publicKey}",
     )
-    @RequestLine("POST /api/v1/asset?permissionAssetManager=true")
-    fun generateOnboarding(
+    @RequestLine("POST /api/v1/asset?permissionAssetManager=true&type=payable")
+    fun onboardPayable(
         @Param("address") address: String,
         @Param("publicKey") publicKey: String,
         asset: Asset,

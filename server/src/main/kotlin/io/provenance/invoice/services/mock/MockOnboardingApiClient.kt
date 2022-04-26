@@ -16,7 +16,7 @@ class MockOnboardingApiClient : OnboardingApiClient {
         logger.warn("App starting with simulated onboarding api client")
     }
 
-    override fun generateOnboarding(
+    override fun onboardPayable(
         address: String,
         publicKey: String,
         asset: Asset
