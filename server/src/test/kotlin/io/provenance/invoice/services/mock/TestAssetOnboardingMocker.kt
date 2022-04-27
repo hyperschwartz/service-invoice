@@ -25,7 +25,7 @@ class TestAssetOnboardingMocker {
     @Test
     fun testAssetOnboardingMockerResponses() {
         val asset = MockInvoice.defaultProto().toAssetI()
-        val assetUuid = asset.id.toUuidI()
+        val assetUuid = asset.id.value.toUuidI()
         val response = assertSucceeds("A valid public key and address should produce output") {
             AssetOnboardingMocker.mockAssetResponse(
                 asset = asset,

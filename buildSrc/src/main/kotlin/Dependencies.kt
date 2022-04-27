@@ -6,6 +6,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 
 object Versions {
     const val Arrow = "1.0.1"
+    const val AssetModel = "0.1.2"
     const val BouncyCastle = "1.70"
     const val Exposed = "0.37.3"
     const val Feign = "10.1.0"
@@ -141,6 +142,10 @@ object Dependencies {
 
     object Arrow {
         val Core = DependencySpec("io.arrow-kt:arrow-core", Versions.Arrow)
+    }
+
+    object Asset {
+        val AssetModel = DependencySpec("io.provenance.model:metadata-asset-model", Versions.AssetModel)
     }
 
     val BouncyCastle = DependencySpec("org.bouncycastle:bcprov-jdk15on", Versions.BouncyCastle)

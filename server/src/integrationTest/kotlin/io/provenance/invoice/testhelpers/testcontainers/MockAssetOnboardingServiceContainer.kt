@@ -1,7 +1,6 @@
 package io.provenance.invoice.testhelpers.testcontainers
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.provenance.invoice.AssetProtos.Asset
 import mu.KLogging
 import org.mockserver.client.MockServerClient
 import org.mockserver.model.HttpRequest.request
@@ -12,6 +11,7 @@ import org.testcontainers.utility.DockerImageName
 import io.provenance.invoice.config.app.ConfigurationUtil.DEFAULT_OBJECT_MAPPER
 import io.provenance.invoice.config.web.AppHeaders
 import io.provenance.invoice.services.mock.AssetOnboardingMocker
+import tech.figure.asset.v1beta1.Asset
 
 class MockAssetOnboardingServiceContainer : TestContainerTemplate<MockServerContainer> {
     private companion object : KLogging() {

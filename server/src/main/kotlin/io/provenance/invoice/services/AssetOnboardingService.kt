@@ -1,6 +1,5 @@
 package io.provenance.invoice.services
 
-import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.clients.OnboardingApiClient
 import io.provenance.invoice.config.app.Qualifiers
 import io.provenance.metadata.v1.MsgWriteRecordRequest
@@ -10,6 +9,7 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import io.provenance.invoice.util.provenance.ProvenanceAccountDetail
 import org.springframework.beans.factory.annotation.Qualifier
+import tech.figure.asset.v1beta1.Asset
 
 @Service
 class AssetOnboardingService(

@@ -7,7 +7,6 @@ import cosmos.tx.v1beta1.TxOuterClass.TxBody
 import feign.Headers
 import feign.Param
 import feign.RequestLine
-import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.config.web.AppHeaders
 import io.provenance.invoice.util.extension.checkNotNullI
 import io.provenance.invoice.util.extension.deriveDefaultInstanceI
@@ -16,6 +15,7 @@ import io.provenance.invoice.util.extension.typedUnpackI
 import io.provenance.metadata.v1.MsgWriteRecordRequest
 import io.provenance.metadata.v1.MsgWriteScopeRequest
 import io.provenance.metadata.v1.MsgWriteSessionRequest
+import tech.figure.asset.v1beta1.Asset
 
 @Headers("Content-Type: application/json")
 interface OnboardingApiClient {

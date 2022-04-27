@@ -1,52 +1,28 @@
 package io.provenance.invoice.util.extension
 
-import com.google.protobuf.DescriptorProtos.EnumValueOptions
-import com.google.protobuf.GeneratedMessage.GeneratedExtension
-import com.google.protobuf.MessageOrBuilder
-import com.google.protobuf.ProtocolMessageEnum
-import io.provenance.invoice.AssetProtos
-import io.provenance.invoice.AssetProtos.Asset
-import io.provenance.invoice.AssetProtos.AssetOrBuilder
-import io.provenance.invoice.AssetProtos.AssetType
-import io.provenance.invoice.AssetProtosBuilders
 import io.provenance.invoice.InvoiceProtos.Invoice
 import io.provenance.invoice.InvoiceProtos.InvoiceOrBuilder
-import io.provenance.invoice.UtilProtos
-import io.provenance.invoice.util.randomProtoUuidI
+import tech.figure.asset.v1beta1.Asset
+import tech.figure.asset.v1beta1.AssetOrBuilder
 import java.math.BigDecimal
 
-fun AssetType.provenanceNameI(): String = this.getExtensionValue(AssetProtos.provenanceName)
+private const val ASSET_TYPE = "payable"
+private const val INVOICE_KV_NAME = "invoice"
 
-fun AssetType.assetKvNameI(): String = this.getExtensionValue(AssetProtos.assetKvName)
-
-fun InvoiceOrBuilder.toAssetI(): Asset = this.toAssetI(
-    assetType = AssetType.NFT,
-    assetDescription = "Invoice [${this.invoiceUuid.value}]",
-    idProvider = { invoiceUuid },
-)
+fun InvoiceOrBuilder.toAssetI(): Asset = Asset.newBuilder().also { assetBuilder ->
+    assetBuilder.id = tech.figure.util.v1beta1.UUID.newBuilder().setValue(this.invoiceUuid.value).build()
+    assetBuilder.type = ASSET_TYPE
+    assetBuilder.description = "Invoice [${this.invoiceUuid.value}]"
+    assetBuilder.putKv(INVOICE_KV_NAME, this.toProtoAnyI())
+}.build()
 
 fun InvoiceOrBuilder.totalAmountI(): BigDecimal = lineItemsList.sumOf { it.quantity.toBigDecimal() * it.price.toBigDecimalOrZeroI() }
 
-fun AssetOrBuilder.unpackInvoiceI(): Invoice = this
-    .checkI({ it.type == AssetType.NFT.name }) { "Cannot unpack invoice from asset. Expected invoice to be properly typed as [${AssetType.NFT.name}] but type was [$type]" }
-    .kvMap[AssetType.NFT.assetKvNameI()]
-    .checkNotNullI { "Expected the NFT to be serialized into the KV map of the asset under its KV name of [${AssetType.NFT.assetKvNameI()}]" }
-    .unpack(Invoice::class.java)
-
-private fun <T: MessageOrBuilder> T.toAssetI(
-    assetType: AssetType,
-    assetDescription: String = assetType.provenanceNameI(),
-    idProvider: (T) -> UtilProtos.UUID = { randomProtoUuidI() },
-): Asset = this.let { message ->
-    AssetProtosBuilders.Asset {
-        id = idProvider.invoke(message)
-        type = assetType.name
-        description = assetDescription
-        putKv(assetType.assetKvNameI(), message.toProtoAnyI())
-    }
-}
-
-private fun <T: ProtocolMessageEnum, U: Any> T.getExtensionValue(extension: GeneratedExtension<EnumValueOptions, U>): U =
-    this.valueDescriptor.options.getExtension(extension)
-
-
+fun AssetOrBuilder.toInvoiceI(): Invoice = this
+    .checkI(
+        predicate = { asset -> asset.kvCount == 1 },
+        lazyMessage = { "An asset containing an invoice should only contain a single kv value, but found keys: ${this.kvMap.keys}" },
+    )
+    .kvMap[INVOICE_KV_NAME]
+    ?.unpack(Invoice::class.java)
+    ?: throw IllegalStateException("No key of type [$INVOICE_KV_NAME] could be found in asset kv map.  Found keys: ${this.kvMap.keys}")
