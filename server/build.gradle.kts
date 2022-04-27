@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":proto"))
     listOf(
         Dependencies.Arrow.Core,
+        Dependencies.Asset.AssetModel,
         Dependencies.BouncyCastle,
         Dependencies.Database.Exposed,
         Dependencies.Database.ExposedDao,

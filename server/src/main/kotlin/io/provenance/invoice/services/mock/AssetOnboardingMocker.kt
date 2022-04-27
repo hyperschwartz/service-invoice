@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.io.BaseEncoding
 import cosmos.tx.v1beta1.TxOuterClass.TxBody
-import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.clients.OnboardingResponse
 import io.provenance.invoice.util.extension.toJsonProvenanceI
 import io.provenance.invoice.util.extension.toProtoAnyI
@@ -28,6 +27,7 @@ import io.provenance.scope.encryption.ecies.ProvenanceKeyGenerator
 import io.provenance.scope.objectstore.client.SIGNATURE_PUBLIC_KEY_FIELD_NAME
 import io.provenance.scope.util.MetadataAddress
 import io.provenance.scope.util.toByteString
+import tech.figure.asset.v1beta1.Asset
 import java.io.ByteArrayInputStream
 import java.security.PublicKey
 import java.util.Base64
@@ -64,7 +64,7 @@ object AssetOnboardingMocker {
     ): OnboardingResponse {
         val decodedPublicKey = ECUtils.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKey))
         val hash = hashAsset(asset, decodedPublicKey)
-        val txBody = buildTxBody(asset.id.toUuidI(), hash, address)
+        val txBody = buildTxBody(asset.id.value.toUuidI(), hash, address)
         return OnboardingResponse(
             json = ObjectMapper().readValue(txBody.toJsonProvenanceI()),
             base64 = txBody.messagesList.map { it.toByteArray().toBase64String() },

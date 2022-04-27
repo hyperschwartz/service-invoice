@@ -2,7 +2,6 @@ package io.provenance.invoice.services
 
 import arrow.core.Either
 import arrow.core.getOrHandle
-import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.config.provenance.ObjectStore
 import io.provenance.invoice.factory.InvoiceCalcFactory
 import io.provenance.invoice.repository.FailedEventRepository
@@ -13,12 +12,13 @@ import io.provenance.invoice.util.enums.InvoiceStatus
 import io.provenance.invoice.util.eventstream.external.StreamEvent
 import io.provenance.invoice.util.extension.attributeValueI
 import io.provenance.invoice.util.extension.attributeValueOrNullI
-import io.provenance.invoice.util.extension.unpackInvoiceI
+import io.provenance.invoice.util.extension.toInvoiceI
 import io.provenance.invoice.util.provenance.PayableContractKey
 import io.provenance.invoice.util.validation.InvoiceValidator
 import io.provenance.scope.sdk.extensions.resultHash
 import mu.KLogging
 import org.springframework.stereotype.Service
+import tech.figure.asset.v1beta1.Asset
 import java.time.OffsetDateTime
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -102,7 +102,7 @@ class EventHandlerService(
             .getDecryptedPayload(objectStore.oracleAccountDetail.keyRef)
             .use { signatureStream ->
                 val messageBytes = signatureStream.readAllBytes()
-                val targetInvoice = Asset.parseFrom(messageBytes).unpackInvoiceI()
+                val targetInvoice = Asset.parseFrom(messageBytes).toInvoiceI()
                 Either.catch {
                     InvoiceValidator.validateInvoiceForApproval(
                         invoiceDto = invoiceDto,

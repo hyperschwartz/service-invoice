@@ -1,11 +1,11 @@
 package io.provenance.invoice.services.mock
 
-import io.provenance.invoice.AssetProtos.Asset
 import io.provenance.invoice.clients.OnboardingApiClient
 import io.provenance.invoice.clients.OnboardingResponse
 import mu.KLogging
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
+import tech.figure.asset.v1beta1.Asset
 
 @Service
 @ConditionalOnProperty(name = ["simulated.asset_onboarding_api"], havingValue = "true")
@@ -19,7 +19,7 @@ class MockOnboardingApiClient : OnboardingApiClient {
     override fun onboardPayable(
         address: String,
         publicKey: String,
-        asset: Asset
+        asset: Asset,
     ): OnboardingResponse {
         logger.error("Using simulated asset onboarding api client!")
         return AssetOnboardingMocker.mockAssetResponse(

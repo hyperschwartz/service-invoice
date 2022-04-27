@@ -13,7 +13,6 @@ import io.provenance.invoice.util.extension.toAssetI
 import io.provenance.invoice.util.extension.toProtoAnyI
 import io.provenance.invoice.util.extension.toUuidI
 import io.provenance.invoice.util.provenance.ProvenanceAccountDetail
-import io.provenance.invoice.util.validation.InvoiceValidator
 import io.provenance.invoice.util.validation.ValidatedInvoice
 import org.springframework.beans.factory.annotation.Qualifier
 import java.math.BigDecimal

@@ -1,7 +1,5 @@
 package io.provenance.invoice.util.provenance
 
-import io.provenance.invoice.AssetProtos.Asset
-import io.provenance.invoice.AssetProtos.AssetType
 import io.provenance.invoice.util.extension.tryOrNullI
 import io.provenance.scope.util.Bech32
 import java.security.MessageDigest
@@ -10,11 +8,6 @@ object ProvenanceUtil {
     private const val INVOICE_DENOM_PREFIX = "invoice"
     private const val MARKER_ENCODING_PREFIX: String = "marker/"
     private const val MARKER_ENCODING_TRUNCATE_LENGTH: Int = 20
-
-    fun getInvoiceDenominationForAsset(asset: Asset): String {
-        check(asset.type == AssetType.NFT.name) { "Provided asset with id [${asset.id.value}] is not of expected type [${AssetType.NFT.name}]" }
-        return "$INVOICE_DENOM_PREFIX-${asset.id.value}"
-    }
 
     /**
      * Takes a source denomination for a marker and an account address from the target blockchain environment and
